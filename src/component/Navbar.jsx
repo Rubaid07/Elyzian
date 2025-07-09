@@ -59,8 +59,8 @@ export default function Navbar() {
                   to={to}
                   onClick={handleLinkClick}
                   className={({ isActive }) =>
-                    `block py-2 pr-4 pl-3 transition-colors duration-200 ${
-                      isActive ? 'text-[#0199cc]' : 'hover:text-[#0199cc]'
+                    `block py-2 pr-4 pl-3 font-semibold transition-colors duration-200 ${
+                      isActive ? 'text-sky-700' : 'hover:text-sky-700'
                     }`
                   }
                 >
@@ -72,7 +72,7 @@ export default function Navbar() {
               <Link
                 to="/login"
                 onClick={handleLinkClick}
-                className="block py-2 px-4 mt-2 md:mt-0 border border-[#0199cc] text-[#0199cc] rounded hover:bg-[#0199cc] hover:text-white transition-colors duration-200 text-center"
+                className="block py-2 px-4 mt-2 md:mt-0 border border-sky-700 text-sky-700 rounded hover:bg-sky-700 hover:text-white transition-colors duration-200 text-center"
               >
                 Login
               </Link>
