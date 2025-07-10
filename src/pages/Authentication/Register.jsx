@@ -42,11 +42,10 @@ const Register = () => {
       formData.append("image", imageFile);
 
       try {
-        const res = await axios.post(
-          `https://api.imgbb.com/1/upload?key=${import.meta.env.VITE_IMGBB_API_KEY}`,
-          formData
-        );
-        imageUrl = res.data.data.url;
+        const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/upload`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        imageUrl = res.data.imageUrl;
       } catch (err) {
         toast.error("Image upload failed");
         return;
@@ -57,7 +56,15 @@ const Register = () => {
       .then(result => {
         const user = result.user;
         updateUser({ displayName: name, photoURL: imageUrl }).then(() => {
-          setUser({ ...user, displayName: name, photoURL: imageUrl });
+          const newUser = { ...user, displayName: name, photoURL: imageUrl };
+          setUser(newUser);
+
+          axios.put(`${import.meta.env.VITE_API_URL}/users/${user.email}`, {
+            name: name,
+            email: email,
+            photo: imageUrl,
+          });
+
           toast.success("Sign up successful");
           navigate("/");
         }).catch(error => {

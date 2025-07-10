@@ -4,6 +4,7 @@ import { FiEye, FiEyeOff } from 'react-icons/fi';
 import logo from '../../assets/logo.png';
 import { AuthContext } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
+import axios from 'axios';
 
 const Login = () => {
   const navigate = useNavigate()
@@ -34,13 +35,21 @@ const Login = () => {
   const handleGoogleSignIn = () => {
     signInWithGoogle()
       .then(result => {
-        toast.success("Logged in successfully")
-        navigate(`${location.state ? location.state : "/"}`)
+        const user = result.user;
+        axios.put(`${import.meta.env.VITE_API_URL}/users/${user.email}`, {
+          name: user.displayName,
+          email: user.email,
+          photo: user.photoURL,
+        });
+
+        toast.success("Logged in successfully");
+        navigate(`${location.state ? location.state : "/"}`);
       })
       .catch(error => {
-        toast.error(error.message)
-      })
-  }
+        toast.error(error.message);
+      });
+  };
+
 
   return (
     <div className="flex flex-col items-center justify-center px-4 py-12">
