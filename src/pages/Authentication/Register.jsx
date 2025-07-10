@@ -1,17 +1,92 @@
-import { useState } from 'react';
-import { Link } from 'react-router';
+import { use, useState } from 'react';
+import { Link, useNavigate } from 'react-router';
 import { FiEye, FiEyeOff } from 'react-icons/fi';
-import logo from '../../assets/logo.png';
 import { FaArrowUp, FaUser } from 'react-icons/fa';
+import { AuthContext } from '../../context/AuthContext';
+import toast from 'react-hot-toast';
+import logo from '../../assets/logo.png';
+import axios from 'axios';
 
 const Register = () => {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const { createUser, updateUser, setUser, signInWithGoogle } = use(AuthContext);
+  const [passwordError, setPasswordError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const handleSubmit = (e) => {
+  const [imagePreview, setImagePreview] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
+  const navigate = useNavigate();
+
+  const handleSignUp = async (e) => {
     e.preventDefault();
-    
+    const form = e.target;
+    const name = form.name.value;
+    const email = form.email.value;
+    const password = form.password.value;
+
+    if (password.length < 6) {
+      setPasswordError("Password must be at least 6 characters");
+      return;
+    }
+    if (!/[A-Z]/.test(password)) {
+      setPasswordError("Password must contain at least one uppercase letter");
+      return;
+    }
+    if (!/[a-z]/.test(password)) {
+      setPasswordError("Password must contain at least one lowercase letter");
+      return;
+    }
+    setPasswordError("");
+
+    let imageUrl = null;
+    if (imageFile) {
+      const formData = new FormData();
+      formData.append("image", imageFile);
+
+      try {
+        const res = await axios.post(
+          `https://api.imgbb.com/1/upload?key=${import.meta.env.VITE_IMGBB_API_KEY}`,
+          formData
+        );
+        imageUrl = res.data.data.url;
+      } catch (err) {
+        toast.error("Image upload failed");
+        return;
+      }
+    }
+
+    createUser(email, password)
+      .then(result => {
+        const user = result.user;
+        updateUser({ displayName: name, photoURL: imageUrl }).then(() => {
+          setUser({ ...user, displayName: name, photoURL: imageUrl });
+          toast.success("Sign up successful");
+          navigate("/");
+        }).catch(error => {
+          toast.error(error.message);
+          setUser(user);
+        });
+      })
+      .catch(error => {
+        toast.error(error.message);
+      });
+  };
+
+  const handleGoogleSignIn = () => {
+    signInWithGoogle()
+      .then(() => {
+        toast.success("Login successfully");
+        navigate("/");
+      })
+      .catch(error => {
+        toast.error(error.message);
+      });
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImagePreview(URL.createObjectURL(file));
+      setImageFile(file);
+    }
   };
 
   return (
@@ -27,33 +102,35 @@ const Register = () => {
           <p className="text-gray-500 mt-2">Get started with your free account</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSignUp} className="space-y-4">
           <div className="mb-6 flex">
-
             <label htmlFor="profileUpload" className="relative w-15 h-15 bg-gray-200 rounded-full flex items-center justify-center cursor-pointer overflow-hidden">
-             
+              {imagePreview ? (
+                <img src={imagePreview} alt="Profile" className="w-full h-full object-cover" />
+              ) : (
+                <FaUser className="text-gray-500 text-3xl" />
+              )}
               <div className="absolute bottom-1 right-1 bg-white rounded-full p-1 shadow">
                 <FaArrowUp className="text-sky-700 text-xs" />
               </div>
             </label>
-
             <input
               type="file"
               id="profileUpload"
               accept="image/*"
+              onChange={handleImageChange}
               className="hidden"
             />
           </div>
+
           <div>
             <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
               Full Name
             </label>
             <input
-              id="name"
+              name="name"
               type="text"
               required
-              value={name}
-              onChange={(e) => setName(e.target.value)}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-700 focus:border-transparent"
               placeholder="Enter your full name"
             />
@@ -64,11 +141,9 @@ const Register = () => {
               Email address
             </label>
             <input
-              id="email"
+              name="email"
               type="email"
               required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-700 focus:border-transparent"
               placeholder="Enter your email"
             />
@@ -80,11 +155,9 @@ const Register = () => {
             </label>
             <div className="relative">
               <input
-                id="password"
+                name="password"
                 type={showPassword ? "text" : "password"}
                 required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-700 focus:border-transparent"
                 placeholder="Enter your password"
               />
@@ -97,6 +170,8 @@ const Register = () => {
               </button>
             </div>
           </div>
+
+          {passwordError && <p className='text-red-400 text-xs'>{passwordError}</p>}
 
           <div className="flex items-center">
             <input
@@ -129,9 +204,10 @@ const Register = () => {
         </div>
 
         <button
-          onClick={() => { }}
-          className="w-full flex items-center justify-center gap-2 py-2 px-4 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+          onClick={handleGoogleSignIn}
+          className="w-full flex items-center justify-center gap-2 py-2 px-4 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors cursor-pointer"
         >
+          {/* Google SVG Icon */}
           <svg aria-label="Google logo" width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
             <g>
               <path d="m0 0H512V512H0" fill="#fff"></path>

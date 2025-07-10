@@ -1,22 +1,46 @@
-import { useState } from 'react';
-import { Link } from 'react-router';
-import { FiEye, FiEyeOff } from 'react-icons/fi'; // Import eye icons from react-icons
+import { use, useState } from 'react';
+import { Link, useNavigate } from 'react-router';
+import { FiEye, FiEyeOff } from 'react-icons/fi';
 import logo from '../../assets/logo.png';
+import { AuthContext } from '../../context/AuthContext';
+import toast from 'react-hot-toast';
 
 const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(false);
-  const [showPassword, setShowPassword] = useState(false); // New state for password visibility
+  const navigate = useNavigate()
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("")
+  const { signIn, signInWithGoogle } = use(AuthContext)
 
-  const handleSubmit = (e) => {
+  const handleSignIn = e => {
     e.preventDefault();
-    // Your submit logic here
-  };
+    const form = e.target;
+    const email = form.email.value;
+    const password = form.password.value;
+    signIn(email, password)
+      .then(result => {
+        toast.success("Logged in successfully")
+        navigate(`${location.state ? location.state : "/"}`)
+      })
+      .catch(error => {
+        const errorCode = error.code
+        setError(errorCode)
+      })
+  }
 
-  const togglePasswordVisibility = () => {
+  const togglePasswordShow = () => {
     setShowPassword(!showPassword);
   };
+
+  const handleGoogleSignIn = () => {
+    signInWithGoogle()
+      .then(result => {
+        toast.success("Logged in successfully")
+        navigate(`${location.state ? location.state : "/"}`)
+      })
+      .catch(error => {
+        toast.error(error.message)
+      })
+  }
 
   return (
     <div className="flex flex-col items-center justify-center px-4 py-12">
@@ -31,7 +55,7 @@ const Login = () => {
           <p className="text-gray-500 mt-2">Sign in to your account</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSignIn} className="space-y-6">
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
               Email address
@@ -40,30 +64,26 @@ const Login = () => {
               id="email"
               type="email"
               required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-700 focus:border-transparent"
               placeholder="Enter your email"
             />
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               Password
             </label>
             <div className="relative">
               <input
-                id="password"
+                name="password"
                 type={showPassword ? "text" : "password"}
                 required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-700 focus:border-transparent"
                 placeholder="Enter your password"
               />
               <button
                 type="button"
-                onClick={togglePasswordVisibility}
+                onClick={togglePasswordShow}
                 className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
@@ -71,15 +91,12 @@ const Login = () => {
               </button>
             </div>
           </div>
+          {error && <p className='text-red-400 text-xs'>{error}</p>}
 
           <div className="flex items-center justify-between">
             <div className="flex items-center">
               <input
-                id="remember-me"
-                name="remember-me"
                 type="checkbox"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
                 className="h-4 w-4 text-sky-700 rounded"
               />
               <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
@@ -110,6 +127,7 @@ const Login = () => {
           </div>
 
           <button
+            onClick={handleGoogleSignIn}
             className="w-full flex items-center justify-center gap-2 py-2 px-4 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors cursor-pointer"
           >
             <svg aria-label="Google logo" width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
