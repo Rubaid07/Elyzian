@@ -8,6 +8,8 @@ import Home from "../pages/HomePage/Home";
 import Register from "../pages/Authentication/Register";
 import PrivateRoute from "./PrivateRoute";
 import DashboardLayout from "../layouts/DashboardLayout";
+import Profile from "../pages/dashboard/Profile";
+import MyPolicies from "../pages/dashboard/MyPolicies";
 
 export const router = createBrowserRouter([
   {
@@ -46,11 +48,11 @@ export const router = createBrowserRouter([
     children: [
       {
         path: 'profile',
-        // Component: 
+        Component: Profile
       },
       {
         path: 'my-policies',
-        // Component: 
+        Component: MyPolicies
       }
     ]
   }

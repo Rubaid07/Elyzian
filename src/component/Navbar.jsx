@@ -86,7 +86,7 @@ export default function Navbar() {
                     <li>
                       <button
                         onClick={handleLogout}
-                        className="text-red-600 hover:bg-red-100 w-full text-left px-3 py-2"
+                        className="text-red-600 hover:bg-red-100 w-full text-left py-2"
                       >
                         <CgLogOut size={16} />
                         Logout
@@ -125,7 +125,7 @@ export default function Navbar() {
                     <li>
                       <button
                         onClick={handleLogout}
-                        className="text-red-600 hover:bg-red-100 w-full text-left px-3 py-2"
+                        className="text-red-600 hover:bg-red-100 w-full text-left py-2"
                       >
                         <CgLogOut size={16} />
                         Logout
