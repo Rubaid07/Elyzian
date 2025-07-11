@@ -19,8 +19,12 @@ const Login = () => {
     const password = form.password.value;
     signIn(email, password)
       .then(result => {
-        toast.success("Logged in successfully")
-        navigate(`${location.state ? location.state : "/"}`)
+        const user = result.user;
+        user.getIdToken().then(token => {
+          localStorage.setItem('access-token', token);
+          toast.success("Logged in successfully");
+          navigate(`${location.state ? location.state : "/"}`);
+        });
       })
       .catch(error => {
         const errorCode = error.code

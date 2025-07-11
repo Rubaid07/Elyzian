@@ -10,6 +10,7 @@ import PrivateRoute from "./PrivateRoute";
 import DashboardLayout from "../layouts/DashboardLayout";
 import Profile from "../pages/dashboard/Profile";
 import MyPolicies from "../pages/dashboard/MyPolicies";
+import ManageUsers from "../pages/dashboard/ManageUsers";
 
 export const router = createBrowserRouter([
   {
@@ -53,6 +54,10 @@ export const router = createBrowserRouter([
       {
         path: 'my-policies',
         Component: MyPolicies
+      },
+      {
+        path: 'manage-users',
+        Component: ManageUsers
       }
     ]
   }

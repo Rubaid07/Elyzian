@@ -1,8 +1,14 @@
-import { Outlet, NavLink } from 'react-router';
+import { Outlet, NavLink, Link } from 'react-router';
 import { useContext, useEffect, useState } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import logo from '../assets/logo.png';
-import { FaUserShield, FaWallet, FaList, FaUser, FaSignOutAlt, FaBars } from 'react-icons/fa';
+import {
+  FaUser, FaUserShield, FaList, FaWallet, FaUsersCog,
+  FaUserFriends, FaBlogger, FaPenFancy, FaFileInvoiceDollar,
+  FaSignOutAlt,
+  FaBars,
+  FaHandsHelping
+} from 'react-icons/fa';
 import toast from 'react-hot-toast';
 import useAxiosSecure from '../hooks/useAxiosSecure';
 
@@ -33,21 +39,21 @@ const DashboardLayout = () => {
     { label: 'Profile', to: '/dashboard/profile', icon: <FaUser className="text-lg" /> },
     ...(role === 'admin'
       ? [
-        { label: 'Manage Users', to: '/dashboard/manage-users', icon: <FaUserShield className="text-lg" /> },
-        { label: 'Manage Policies', to: '/dashboard/manage-policies', icon: <FaList className="text-lg" /> },
+        { label: 'Manage Users', to: '/dashboard/manage-users', icon: <FaUsersCog className="text-lg" /> },
+        { label: 'Manage Policies', to: '/dashboard/manage-policies', icon: <FaFileInvoiceDollar className="text-lg" /> },
         { label: 'Transactions', to: '/dashboard/transactions', icon: <FaWallet className="text-lg" /> },
-        { label: 'Manage Agents', to: '/dashboard/manage-agents', icon: <FaUser className="text-lg" /> },
+        { label: 'Manage Agents', to: '/dashboard/manage-agents', icon: <FaUserShield className="text-lg" /> },
       ]
       : role === 'agent'
         ? [
-          { label: 'Assigned Customers', to: '/dashboard/assigned-customers', icon: <FaUser className="text-lg" /> },
-          { label: 'Manage Blogs', to: '/dashboard/manage-blogs', icon: <FaList className="text-lg" /> },
-          { label: 'Post Blog', to: '/dashboard/add-blog', icon: <FaList className="text-lg" /> },
+          { label: 'Assigned Customers', to: '/dashboard/assigned-customers', icon: <FaUserFriends className="text-lg" /> },
+          { label: 'Manage Blogs', to: '/dashboard/manage-blogs', icon: <FaBlogger className="text-lg" /> },
+          { label: 'Post Blog', to: '/dashboard/add-blog', icon: <FaPenFancy className="text-lg" /> },
         ]
         : [
           { label: 'My Policies', to: '/dashboard/my-policies', icon: <FaList className="text-lg" /> },
           { label: 'Payment', to: '/dashboard/payment', icon: <FaWallet className="text-lg" /> },
-          { label: 'Claim Request', to: '/dashboard/claim', icon: <FaUserShield className="text-lg" /> },
+          { label: 'Claim Request', to: '/dashboard/claim', icon: <FaHandsHelping className="text-lg" /> },
         ]),
   ];
   if (loading) return <div className="p-6">Loading dashboard...</div>;
@@ -61,7 +67,9 @@ const DashboardLayout = () => {
           <label htmlFor="dashboard-drawer" className="btn btn-ghost btn-circle">
             <FaBars className="text-sky-700 text-xl" />
           </label>
-          <img src={logo} alt="Logo" className="h-8" />
+          <Link to="/">
+              <img src={logo} alt="Logo" className="h-8" />
+            </Link>
           <div className="w-8"></div>
         </header>
 
@@ -75,10 +83,12 @@ const DashboardLayout = () => {
 
         <aside className="menu p-4 w-72 min-h-full bg-white text-base-content flex flex-col border-r border-gray-200">
           <div className="flex items-center gap-3 mb-6 p-2">
-            <img src={logo} alt="Logo" className="h-8" />
+            <Link to="/">
+              <img src={logo} alt="Logo" className="h-8" />
+            </Link>
           </div>
 
-          <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg mb-6">
+          <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg mb-6 w-full">
             <div className="avatar">
               <div className="w-12 rounded-full">
                 <img src={user?.photoURL || 'https://i.ibb.co/5GzXkwq/user.png'} alt="User" />
@@ -86,7 +96,7 @@ const DashboardLayout = () => {
             </div>
             <div className="overflow-hidden">
               <p className="font-medium truncate">{user?.displayName || "Guest User"}</p>
-              <p className="text-sm text-gray-500 truncate">{user?.email || "No email"}</p>
+              <p className="text-sm text-gray-500 truncate" title={user?.email || "No email"}>{user?.email || "No email"}</p>
             </div>
           </div>
 
