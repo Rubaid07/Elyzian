@@ -40,6 +40,11 @@ const Login = () => {
     signInWithGoogle()
       .then(result => {
         const user = result.user;
+        user.getIdToken().then(token => {
+          localStorage.setItem('access-token', token);
+          toast.success("Logged in successfully");
+          navigate(`${location.state ? location.state : "/"}`);
+        });
         axios.put(`${import.meta.env.VITE_API_URL}/users/${user.email}`, {
           name: user.displayName,
           email: user.email,

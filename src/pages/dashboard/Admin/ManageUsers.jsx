@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import useAxiosSecure from '../../hooks/useAxiosSecure';
+import useAxiosSecure from '../../../hooks/useAxiosSecure';
 import toast from 'react-hot-toast';
 
 const ManageUsers = () => {
@@ -30,7 +30,7 @@ const ManageUsers = () => {
         mutation.mutate({ email, role: newRole });
     };
 
-    if (isLoading) return <p className="text-center py-6">Loading users...</p>;
+    if (isLoading) return <div className="spinner spinner-1"></div>;
 
     return (
         <div>
@@ -61,7 +61,7 @@ const ManageUsers = () => {
                                     {user.role !== 'admin' && (
                                         <button
                                             onClick={() => handleRoleChange(user.email, user.role)}
-                                            className="btn btn-xs btn-primary"
+                                            className="btn btn-sm bg-sky-700 text-white"
                                         >
                                             {user.role === 'agent' ? 'Demote' : 'Promote'}
                                         </button>

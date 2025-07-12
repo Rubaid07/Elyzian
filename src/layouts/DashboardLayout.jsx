@@ -7,7 +7,8 @@ import {
   FaUserFriends, FaBlogger, FaPenFancy, FaFileInvoiceDollar,
   FaSignOutAlt,
   FaBars,
-  FaHandsHelping
+  FaHandsHelping,
+  FaMoneyBillWave 
 } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 import useAxiosSecure from '../hooks/useAxiosSecure';
@@ -39,24 +40,26 @@ const DashboardLayout = () => {
     { label: 'Profile', to: '/dashboard/profile', icon: <FaUser className="text-lg" /> },
     ...(role === 'admin'
       ? [
-        { label: 'Manage Users', to: '/dashboard/manage-users', icon: <FaUsersCog className="text-lg" /> },
-        { label: 'Manage Policies', to: '/dashboard/manage-policies', icon: <FaFileInvoiceDollar className="text-lg" /> },
-        { label: 'Transactions', to: '/dashboard/transactions', icon: <FaWallet className="text-lg" /> },
-        { label: 'Manage Agents', to: '/dashboard/manage-agents', icon: <FaUserShield className="text-lg" /> },
-      ]
+          { label: 'Manage Users', to: '/dashboard/manage-users', icon: <FaUsersCog className="text-lg" /> },
+          { label: 'Manage Policies', to: '/dashboard/manage-policies', icon: <FaFileInvoiceDollar className="text-lg" /> },
+          { label: 'Manage Applications', to: '/dashboard/manage-applications', icon: <FaList className="text-lg" /> },
+          { label: 'Transactions', to: '/dashboard/transactions', icon: <FaWallet className="text-lg" /> },
+          { label: 'Manage Agents', to: '/dashboard/manage-agents', icon: <FaUserShield className="text-lg" /> },
+        ]
       : role === 'agent'
         ? [
-          { label: 'Assigned Customers', to: '/dashboard/assigned-customers', icon: <FaUserFriends className="text-lg" /> },
-          { label: 'Manage Blogs', to: '/dashboard/manage-blogs', icon: <FaBlogger className="text-lg" /> },
-          { label: 'Post Blog', to: '/dashboard/add-blog', icon: <FaPenFancy className="text-lg" /> },
-        ]
-        : [
-          { label: 'My Policies', to: '/dashboard/my-policies', icon: <FaList className="text-lg" /> },
-          { label: 'Payment', to: '/dashboard/payment', icon: <FaWallet className="text-lg" /> },
-          { label: 'Claim Request', to: '/dashboard/claim', icon: <FaHandsHelping className="text-lg" /> },
-        ]),
+            { label: 'Assigned Customers', to: '/dashboard/assigned-customers', icon: <FaUserFriends className="text-lg" /> },
+            { label: 'Manage Blogs', to: '/dashboard/manage-blogs', icon: <FaBlogger className="text-lg" /> },
+            { label: 'Post Blog', to: '/dashboard/add-blog', icon: <FaPenFancy className="text-lg" /> },
+          ]
+        : [ 
+            { label: 'My Policies', to: '/dashboard/my-policies', icon: <FaList className="text-lg" /> },
+            { label: 'Payment Status', to: '/dashboard/payment-status', icon: <FaMoneyBillWave className="text-lg" /> },
+            { label: 'Claim Request', to: '/dashboard/claim-request', icon: <FaHandsHelping className="text-lg" /> },
+          ]),
   ];
-  if (loading) return <div className="p-6">Loading dashboard...</div>;
+
+  if (loading) return <div className="flex justify-center items-center h-screen"><div className="spinner spinner-1"></div></div>;
 
   return (
     <div className="drawer lg:drawer-open">
@@ -122,7 +125,7 @@ const DashboardLayout = () => {
           </nav>
 
           <div className="mt-auto pt-4 border-t border-gray-200">
-            <button onClick={handleLogout} className="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-red-50 text-red-600 transition-colors duration-200">
+            <button onClick={handleLogout} className="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-red-50 text-red-600 transition-colors duration-200 cursor-pointer">
               <FaSignOutAlt className="text-lg" />
               <span>Logout</span>
             </button>

@@ -9,8 +9,31 @@ import Register from "../pages/Authentication/Register";
 import PrivateRoute from "./PrivateRoute";
 import DashboardLayout from "../layouts/DashboardLayout";
 import Profile from "../pages/dashboard/Profile";
-import MyPolicies from "../pages/dashboard/MyPolicies";
-import ManageUsers from "../pages/dashboard/ManageUsers";
+
+import ManageUsers from "../pages/dashboard/Admin/ManageUsers";
+import ManagePolicies from "../pages/dashboard/Admin/ManagePolicies";
+import ManageTransactions from "../pages/dashboard/Admin/ManageTransactions";
+import ManageAgents from "../pages/dashboard/Admin/ManageAgents";
+import ManageApplications from "../pages/dashboard/Admin/ManageApplications";
+
+import AssignedCustomers from "../pages/dashboard/agent/AssignedCustomers";
+import ManageBlogs from "../pages/dashboard/agent/ManageBlogs";
+import AddBlog from "../pages/dashboard/agent/AddBlog"; 
+
+import MyPolicies from "../pages/dashboard/customer/MyPolicies";
+import Payment from "../pages/dashboard/customer/Payment"; 
+import PaymentStatus from "../pages/dashboard/customer/PaymentStatus"; 
+import ClaimRequest from "../pages/dashboard/customer/ClaimRequest";
+
+import AllPolicies from "../pages/AllPolicies";
+import PolicyDetails from "../pages/PolicyDetails";
+import QuotePage from "../pages/QuotePage";
+import ApplicationFormPage from "../pages/ApplicationFormPage";
+import Blogs from "../pages/Blogs";
+import BlogDetails from "../pages/BlogDetails";
+import FAQs from "../pages/FAQs";
+import Agents from "../pages/Agents";
+
 
 export const router = createBrowserRouter([
   {
@@ -23,8 +46,37 @@ export const router = createBrowserRouter([
       },
       {
         path: 'policies',
-        // Component: 
-      }
+        Component: AllPolicies 
+      },
+      {
+        path: 'policy-details/:id',
+        Component: PolicyDetails 
+      },
+      {
+        path: 'blogs',
+        Component: Blogs 
+      },
+      {
+        path: 'agents',
+        Component: Agents
+      },
+      {
+        path: 'blog-details/:id',
+        Component: BlogDetails
+      },
+      {
+        path: 'faqs',
+        Component: FAQs 
+      },
+
+      {
+        path: 'quote',
+        element: <PrivateRoute><QuotePage /></PrivateRoute>
+      },
+      {
+        path: 'apply',
+        element: <PrivateRoute><ApplicationFormPage /></PrivateRoute>
+      },
     ]
   },
   {
@@ -51,14 +103,60 @@ export const router = createBrowserRouter([
         path: 'profile',
         Component: Profile
       },
+
+      // Admin Routes
+      {
+        path: 'manage-users',
+        Component: ManageUsers
+      },
+      {
+        path: 'manage-policies',
+        Component: ManagePolicies
+      },
+      {
+        path: 'manage-applications',
+        Component: ManageApplications
+      },
+      {
+        path: 'transactions',
+        Component: ManageTransactions
+      },
+      {
+        path: 'manage-agents',
+        Component: ManageAgents
+      },
+
+      // Agent Routes
+      {
+        path: 'assigned-customers',
+        Component: AssignedCustomers
+      },
+      {
+        path: 'manage-blogs',
+        Component: ManageBlogs
+      },
+      {
+        path: 'add-blog',
+        Component: AddBlog
+      },
+
+      // Customer Routes
       {
         path: 'my-policies',
         Component: MyPolicies
       },
       {
-        path: 'manage-users',
-        Component: ManageUsers
-      }
+        path: 'payment-status',
+        Component: PaymentStatus
+      },
+      {
+        path: 'payment',
+        Component: Payment
+      },
+      {
+        path: 'claim-request',
+        Component: ClaimRequest
+      },
     ]
   }
 ]);
