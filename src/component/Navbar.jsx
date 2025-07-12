@@ -7,7 +7,6 @@ import { CgLogOut } from 'react-icons/cg';
 
 export default function Navbar() {
   const { user, logOut } = useContext(AuthContext);
-  console.log(user);
 
   const handleLogout = () => {
     logOut()
