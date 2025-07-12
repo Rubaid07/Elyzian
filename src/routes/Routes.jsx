@@ -34,6 +34,7 @@ import BlogDetails from "../pages/BlogDetails";
 import FAQs from "../pages/FAQs";
 import Agents from "../pages/Agents";
 import DashboardOverview from "../pages/dashboard/DashboardOverview";
+import ApplyAsAgent from "../pages/dashboard/customer/ApplyAsAgent";
 
 
 export const router = createBrowserRouter([
@@ -162,6 +163,10 @@ export const router = createBrowserRouter([
         path: 'claim-request',
         Component: ClaimRequest
       },
+      {
+        path: 'apply-agent',
+        Component: ApplyAsAgent
+      }
     ]
   }
 ]);
