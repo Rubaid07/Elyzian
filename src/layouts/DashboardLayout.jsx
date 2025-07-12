@@ -12,6 +12,7 @@ import {
 } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 import useAxiosSecure from '../hooks/useAxiosSecure';
+import Spinner from '../component/Loader/Spinner';
 
 const DashboardLayout = () => {
   const { user, logOut } = useContext(AuthContext);
@@ -59,7 +60,7 @@ const DashboardLayout = () => {
           ]),
   ];
 
-  if (loading) return <div className="flex justify-center items-center h-screen"><div className="spinner spinner-1"></div></div>;
+  if (loading) return <Spinner></Spinner>;
 
   return (
     <div className="drawer lg:drawer-open">

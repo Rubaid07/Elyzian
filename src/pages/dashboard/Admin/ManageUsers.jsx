@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import useAxiosSecure from '../../../hooks/useAxiosSecure';
 import toast from 'react-hot-toast';
+import Spinner from '../../../component/Loader/Spinner';
 
 const ManageUsers = () => {
     const axiosSecure = useAxiosSecure();
@@ -30,7 +31,7 @@ const ManageUsers = () => {
         mutation.mutate({ email, role: newRole });
     };
 
-    if (isLoading) return <div className="spinner spinner-1"></div>;
+    if (isLoading) return <Spinner />;
 
     return (
         <div>

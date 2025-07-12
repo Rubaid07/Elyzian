@@ -1,7 +1,7 @@
-import logo from '../assets/logo.png';
+import logo from '../../assets/logo.png';
 import { useEffect, useState } from 'react';
 
-const Loading = () => {
+const LoadingLogo = () => {
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
@@ -36,4 +36,4 @@ const Loading = () => {
   );
 };
 
-export default Loading;
+export default LoadingLogo;

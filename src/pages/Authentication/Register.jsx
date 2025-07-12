@@ -13,10 +13,13 @@ const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
   const [imageFile, setImageFile] = useState(null);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSignUp = async (e) => {
     e.preventDefault();
+    setLoading(true);
+
     const form = e.target;
     const name = form.name.value;
     const email = form.email.value;
@@ -53,28 +56,31 @@ const Register = () => {
     }
 
     createUser(email, password)
-      .then(result => {
+      .then(async result => {
         const user = result.user;
-        updateUser({ displayName: name, photoURL: imageUrl }).then(() => {
-          const newUser = { ...user, displayName: name, photoURL: imageUrl };
-          setUser(newUser);
 
-          axios.put(`${import.meta.env.VITE_API_URL}/users/${user.email}`, {
-            name: name,
-            email: email,
-            photo: imageUrl,
-          });
+        await updateUser({ displayName: name, photoURL: imageUrl });
 
-          toast.success("Sign up successful");
-          navigate("/");
-        }).catch(error => {
-          toast.error(error.message);
-          setUser(user);
+        const token = await user.getIdToken();
+        localStorage.setItem('access-token', token);
+
+        setUser({ ...user, displayName: name, photoURL: imageUrl });
+
+        await axios.put(`${import.meta.env.VITE_API_URL}/users/${user.email}`, {
+          name,
+          email,
+          photo: imageUrl,
         });
+
+        setLoading(false);
+        toast.success("Sign up successful");
+        navigate("/");
       })
       .catch(error => {
         toast.error(error.message);
+        setLoading(false);
       });
+
   };
 
   const handleGoogleSignIn = () => {
@@ -195,9 +201,15 @@ const Register = () => {
 
           <button
             type="submit"
-            className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-sky-700 hover:bg-sky-800 cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-800 transition duration-150"
+            className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-sky-700 hover:bg-sky-800 cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-800 transition duration-150" disabled={loading}
           >
-            Create Account
+             {loading ? (
+            <>
+              <span className="loading loading-spinner loading-sm"></span> Creating...
+            </>
+          ) : (
+            'Create Account'
+          )}
           </button>
         </form>
 
