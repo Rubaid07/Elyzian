@@ -64,7 +64,8 @@ const AddBlog = () => {
   };
 
   return (
-    <div className="max-w-2xl mx-auto bg-white p-8 shadow rounded-lg">
+  
+     <div className="max-w-2xl mx-auto bg-white p-8 shadow rounded-lg mt-10">
       <h2 className="text-2xl font-bold mb-6">Create New Blog</h2>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">

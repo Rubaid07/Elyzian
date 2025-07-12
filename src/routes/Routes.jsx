@@ -18,11 +18,11 @@ import ManageApplications from "../pages/dashboard/Admin/ManageApplications";
 
 import AssignedCustomers from "../pages/dashboard/agent/AssignedCustomers";
 import ManageBlogs from "../pages/dashboard/agent/ManageBlogs";
-import AddBlog from "../pages/dashboard/agent/AddBlog"; 
+import AddBlog from "../pages/dashboard/agent/AddBlog";
 
 import MyPolicies from "../pages/dashboard/customer/MyPolicies";
-import Payment from "../pages/dashboard/customer/Payment"; 
-import PaymentStatus from "../pages/dashboard/customer/PaymentStatus"; 
+import Payment from "../pages/dashboard/customer/Payment";
+import PaymentStatus from "../pages/dashboard/customer/PaymentStatus";
 import ClaimRequest from "../pages/dashboard/customer/ClaimRequest";
 
 import AllPolicies from "../pages/AllPolicies";
@@ -33,6 +33,7 @@ import Blogs from "../pages/Blogs";
 import BlogDetails from "../pages/BlogDetails";
 import FAQs from "../pages/FAQs";
 import Agents from "../pages/Agents";
+import DashboardOverview from "../pages/dashboard/DashboardOverview";
 
 
 export const router = createBrowserRouter([
@@ -46,15 +47,15 @@ export const router = createBrowserRouter([
       },
       {
         path: 'policies',
-        Component: AllPolicies 
+        Component: AllPolicies
       },
       {
         path: 'policy-details/:id',
-        Component: PolicyDetails 
+        Component: PolicyDetails
       },
       {
         path: 'blogs',
-        Component: Blogs 
+        Component: Blogs
       },
       {
         path: 'agents',
@@ -66,7 +67,7 @@ export const router = createBrowserRouter([
       },
       {
         path: 'faqs',
-        Component: FAQs 
+        Component: FAQs
       },
 
       {
@@ -99,6 +100,10 @@ export const router = createBrowserRouter([
       <DashboardLayout></DashboardLayout>
     </PrivateRoute>,
     children: [
+      {
+        index: true,
+        Component: DashboardOverview,
+      },
       {
         path: 'profile',
         Component: Profile
