@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import useAxiosSecure from '../../../hooks/useAxiosSecure';
 import toast from 'react-hot-toast';
 import { FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
+import Spinner from '../../../component/Loader/Spinner';
 
 const ManageApplications = () => {
   const axiosSecure = useAxiosSecure();
@@ -26,7 +27,7 @@ const ManageApplications = () => {
     }
   };
 
-  if (loading) return <div className="text-center py-10">Loading applications...</div>;
+  if (loading) return <Spinner></Spinner>
 
   return (
     <div className="p-4 bg-white rounded-lg shadow border border-gray-200">

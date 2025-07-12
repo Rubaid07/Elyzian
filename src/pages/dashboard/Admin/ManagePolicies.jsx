@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import useAxiosSecure from '../../../hooks/useAxiosSecure';
 import { FaTrashAlt, FaEdit } from 'react-icons/fa';
 import toast from 'react-hot-toast';
+import Spinner from '../../../component/Loader/Spinner';
 
 const ManagePolicies = () => {
   const axiosSecure = useAxiosSecure();
@@ -29,7 +30,7 @@ const ManagePolicies = () => {
     }
   };
 
-  if (loading) return <div className="text-center py-10">Loading policies...</div>;
+  if (loading) return <Spinner></Spinner>
 
   return (
     <div className="p-4 bg-white rounded-lg shadow border border-gray-200">
