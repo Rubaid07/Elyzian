@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react';
 import useAxiosSecure from '../../../hooks/useAxiosSecure';
 import Spinner from '../../../component/Loader/Spinner';
 import { FaTrashAlt } from 'react-icons/fa';
-import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router';
+import Swal from 'sweetalert2';
 
 const ManageBlogs = () => {
   const axiosSecure = useAxiosSecure();
@@ -23,23 +23,41 @@ const ManageBlogs = () => {
   }, []);
 
   const handleDelete = (id) => {
-    if (!confirm("Are you sure you want to delete this blog?")) return;
-
-    axiosSecure.delete(`/agent/my-blogs/${id}`)
-      .then(res => {
-        if (res.data?.deletedCount > 0) {
-          toast.success('Blog deleted');
-          setBlogs(prev => prev.filter(blog => blog._id !== id));
-        }
-      })
-      .catch(err => {
-        console.error(err);
-        toast.error('Failed to delete blog');
-      });
+    Swal.fire({
+      title: 'Are you sure?',
+      text: "You won't be able to revert this!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#e3342f',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        axiosSecure.delete(`/agent/my-blogs/${id}`)
+          .then(res => {
+            if (res.data?.deletedCount > 0) {
+              setBlogs(prev => prev.filter(blog => blog._id !== id));
+              Swal.fire({
+                title: "Deleted!",
+                text: "Your blog has been deleted.",
+                icon: "success"
+              });
+            }
+          })
+          .catch(err => {
+            console.error(err);
+            Swal.fire({
+              title: 'Failed',
+              text: 'Failed to delete blog',
+              icon: 'error'});
+          });
+      }
+    });
   };
+
   const handleEdit = (id) => {
-  navigate(`/dashboard/manage-blogs/edit-blog/${id}`);
-};
+    navigate(`/dashboard/manage-blogs/edit-blog/${id}`);
+  };
 
   if (loading) return <Spinner />;
 
@@ -69,19 +87,19 @@ const ManageBlogs = () => {
                   <td>{blog.category || 'N/A'}</td>
                   <td>{new Date(blog.createdAt).toLocaleDateString()}</td>
                   <td className="flex gap-2">
-  <button
-    onClick={() => handleEdit(blog._id)}
-    className="btn btn-sm bg-yellow-400 text-white hover:bg-yellow-500"
-  >
-    Edit
-  </button>
-  <button
-    onClick={() => handleDelete(blog._id)}
-    className="btn btn-sm btn-error text-white"
-  >
-    <FaTrashAlt /> Delete
-  </button>
-</td>
+                    <button
+                      onClick={() => handleEdit(blog._id)}
+                      className="btn btn-sm bg-yellow-400 text-white hover:bg-yellow-500"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(blog._id)}
+                      className="btn btn-sm btn-error text-white"
+                    >
+                      <FaTrashAlt /> Delete
+                    </button>
+                  </td>
 
                 </tr>
               ))}
