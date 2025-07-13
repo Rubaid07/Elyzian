@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import useAxiosSecure from '../../../hooks/useAxiosSecure';
 import Spinner from '../../../component/Loader/Spinner';
 import { FaTrashAlt, FaUserCheck, FaEnvelope, FaTimes, FaUserTie } from 'react-icons/fa';
@@ -10,11 +11,11 @@ const ManageAgents = () => {
   const [agents, setAgents] = useState([]);
   const [pendingApplications, setPendingApplications] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('pending');
+  const [tabIndex, setTabIndex] = useState(0);
 
-  const fetchAgentData = () => {
+  const fetchData = () => {
     Promise.all([
-      axiosSecure.get('/admin/agents'), 
+      axiosSecure.get('/admin/agents'),
       axiosSecure.get('/admin/agent-applications')
     ])
       .then(([agentsRes, applicationsRes]) => {
@@ -26,7 +27,7 @@ const ManageAgents = () => {
   };
 
   useEffect(() => {
-    fetchAgentData();
+    fetchData();
   }, []);
 
   const handleApproveAgent = async (id, email) => {
@@ -47,14 +48,14 @@ const ManageAgents = () => {
       try {
         await axiosSecure.patch(`/admin/agent-applications/${id}`, { status: 'approved' });
         await axiosSecure.patch(`/users/${email}/role`, { role: 'agent' });
-        
+
         Swal.fire({
           title: 'Approved!',
           text: 'Agent application has been approved.',
           icon: 'success',
           confirmButtonColor: '#10b981'
         });
-        fetchAgentData();
+        fetchData();
       } catch (err) {
         Swal.fire({
           title: 'Error',
@@ -66,7 +67,7 @@ const ManageAgents = () => {
     }
   };
 
-  const handleRejectAgent = async (id) => { 
+  const handleRejectAgent = async (id) => {
     const confirm = await Swal.fire({
       title: 'Reject Application',
       text: "This will reject the agent application.",
@@ -88,7 +89,7 @@ const ManageAgents = () => {
           icon: 'success',
           confirmButtonColor: '#10b981'
         });
-        fetchAgentData(); 
+        fetchData();
       } catch (err) {
         Swal.fire({
           title: 'Error',
@@ -100,7 +101,7 @@ const ManageAgents = () => {
     }
   };
 
-  const handleDeleteAgent = (email) => { 
+  const handleDeleteAgent = (email) => {
     Swal.fire({
       title: 'Demote Agent',
       text: 'This will remove agent privileges from this user.',
@@ -115,7 +116,7 @@ const ManageAgents = () => {
       if (result.isConfirmed) {
         try {
           await axiosSecure.patch(`/users/${email}/role`, { role: 'customer' });
-          fetchAgentData();
+          fetchData();
           Swal.fire({
             title: 'Demoted!',
             text: 'User has been demoted to customer.',
@@ -138,181 +139,169 @@ const ManageAgents = () => {
 
   return (
     <div className="p-6 bg-white rounded-xl shadow-sm border border-gray-100">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+      <div className="mb-6">
         <div>
           <h2 className="text-2xl font-bold text-gray-800">Agent Management</h2>
           <p className="text-gray-500">Manage agent applications and existing agents</p>
         </div>
-        <div className="flex mt-4 md:mt-0">
-          <div className="stats shadow bg-white">
-            <div className="stat">
-              <div className="stat-figure text-primary">
-                <FaUserTie className="text-xl" />
+      </div>
+
+      <Tabs selectedIndex={tabIndex} onSelect={index => setTabIndex(index)}>
+        <TabList className="flex bg-gray-100 p-1 rounded-lg mb-6 border-b border-gray-200 react-tabs__tab-list">
+          <Tab
+            className="text-center py-2 px-4 cursor-pointer flex items-center justify-center font-medium transition-all duration-200 ease-in-out rounded-lg mr-1
+                       hover:bg-gray-200 react-tabs__tab"
+            selectedClassName="bg-white shadow-sm text-gray-800 react-tabs__tab--selected"
+          >
+            <MdPendingActions className="mr-2" />
+            Pending Applications ({pendingApplications.length})
+          </Tab>
+          <Tab
+            className="text-center py-2 px-4 cursor-pointer flex items-center justify-center font-medium transition-all duration-200 ease-in-out rounded-lg
+                       hover:bg-gray-200 react-tabs__tab"
+            selectedClassName="bg-white shadow-sm text-gray-800 react-tabs__tab--selected"
+          >
+            <FaUserTie className="mr-2" />
+            Active Agents ({agents.length})
+          </Tab>
+        </TabList>
+
+        <TabPanel>
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            {pendingApplications.length === 0 ? (
+              <div className="p-8 text-center">
+                <div className="text-gray-400 mb-4">
+                  <FaUserTie className="inline-block text-4xl" />
+                </div>
+                <h3 className="text-lg font-medium text-gray-700">No pending applications</h3>
+                <p className="text-gray-500">When users apply to become agents, their applications will appear here.</p>
               </div>
-              <div className="stat-title">Active Agents</div>
-              <div className="stat-value text-primary">{agents.length}</div>
-            </div>
-            <div className="stat">
-              <div className="stat-figure text-secondary">
-                <MdPendingActions className="text-xl" />
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="table w-full">
+                  <thead className="bg-gray-50 text-gray-600">
+                    <tr>
+                      <th className="font-medium px-4 py-2">Applicant</th>
+                      <th className="font-medium px-4 py-2">Email</th>
+                      <th className="font-medium px-4 py-2">Applied On</th>
+                      <th className="font-medium text-right px-4 py-2">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {pendingApplications.map(app => (
+                      <tr key={app._id} className="hover:bg-gray-50">
+                        <td className="px-4 py-2">
+                          <div className="flex items-center space-x-3">
+                            <div className="avatar">
+                              <div className="mask mask-squircle w-10 h-10">
+                                <img src={app.photoURL || 'https://i.ibb.co/5GzXkwq/user.png'} alt="Avatar" />
+                              </div>
+                            </div>
+                            <div>
+                              <div className="font-medium">{app.name || 'N/A'}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="text-gray-600 px-4 py-2">{app.email}</td>
+                        <td className="px-4 py-2">
+                          <span className="badge badge-ghost badge-sm">
+                            {app.appliedAt ? new Date(app.appliedAt).toLocaleDateString() :
+                              app.createdAt ? new Date(app.createdAt).toLocaleDateString() : 'N/A'}
+                          </span>
+                        </td>
+                        <td className="px-4 py-2">
+                          <div className="flex justify-end space-x-2">
+                            <button
+                              onClick={() => handleApproveAgent(app._id, app.email)}
+                              className="btn btn-sm bg-green-500 text-white hover:bg-green-600"
+                            >
+                              <FaUserCheck className="mr-1" /> Approve
+                            </button>
+                            <button
+                              onClick={() => handleRejectAgent(app._id)}
+                              className="btn btn-sm bg-red-500 text-white hover:bg-red-600"
+                            >
+                              <FaTimes className="mr-1" /> Reject
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-              <div className="stat-title">Pending Applications</div>
-              <div className="stat-value text-secondary">{pendingApplications.length}</div>
-            </div>
+            )}
           </div>
-        </div>
-      </div>
+        </TabPanel>
 
-      <div className="tabs tabs-boxed bg-gray-100 p-1 rounded-lg mb-6">
-        <button
-          className={`tab ${activeTab === 'pending' ? 'tab-active bg-white shadow-sm' : ''}`}
-          onClick={() => setActiveTab('pending')}
-        >
-          <MdPendingActions className="mr-2" />
-          Pending Applications ({pendingApplications.length})
-        </button> 
-        <button
-          className={`tab ${activeTab === 'agents' ? 'tab-active bg-white shadow-sm' : ''}`}
-          onClick={() => setActiveTab('agents')}
-        >
-          <FaUserTie className="mr-2" />
-          Active Agents ({agents.length})
-        </button>
-      </div>
-
-      {activeTab === 'pending' ? (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          {pendingApplications.length === 0 ? (
-            <div className="p-8 text-center">
-              <div className="text-gray-400 mb-4">
-                <FaUserTie className="inline-block text-4xl" />
+        <TabPanel>
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            {agents.length === 0 ? (
+              <div className="p-8 text-center">
+                <div className="text-gray-400 mb-4">
+                  <FaUserTie className="inline-block text-4xl" />
+                </div>
+                <h3 className="text-lg font-medium text-gray-700">No active agents</h3>
+                <p className="text-gray-500">Approved agents will appear in this list.</p>
               </div>
-              <h3 className="text-lg font-medium text-gray-700">No pending applications</h3>
-              <p className="text-gray-500">When users apply to become agents, their applications will appear here.</p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="table">
-                <thead className="bg-gray-50 text-gray-600">
-                  <tr>
-                    <th className="font-medium">Applicant</th>
-                    <th className="font-medium">Email</th>
-                    <th className="font-medium">Applied On</th>
-                    <th className="font-medium text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {pendingApplications.map(app => (
-                    <tr key={app._id} className="hover:bg-gray-50">
-                      <td>
-                        <div className="flex items-center space-x-3">
-                          <div className="avatar">
-                            <div className="mask mask-squircle w-10 h-10">
-                              <img src={app.photoURL || 'https://i.ibb.co/5GzXkwq/user.png'} alt="Avatar" />
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="table w-full">
+                  <thead className="bg-gray-50 text-gray-600">
+                    <tr>
+                      <th className="font-medium px-4 py-2">Agent</th>
+                      <th className="font-medium px-4 py-2">Email</th>
+                      <th className="font-medium px-4 py-2">Joined</th>
+                      <th className="font-medium text-right px-4 py-2">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {agents.map(agent => (
+                      <tr key={agent._id} className="hover:bg-gray-50">
+                        <td className="px-4 py-2">
+                          <div className="flex items-center space-x-3">
+                            <div className="avatar">
+                              <div className="mask mask-squircle w-10 h-10">
+                                <img src={agent.photoURL || 'https://i.ibb.co/5GzXkwq/user.png'} alt="Avatar" />
+                              </div>
+                            </div>
+                            <div>
+                              <div className="font-medium">{agent.name || 'N/A'}</div>
+                              <div className="text-sm text-gray-500">Agent</div>
                             </div>
                           </div>
-                          <div>
-                            <div className="font-medium">{app.name || 'N/A'}</div>
+                        </td>
+                        <td className="text-gray-600 px-4 py-2">{agent.email}</td>
+                        <td className="px-4 py-2">
+                          <span className="badge badge-ghost badge-sm">
+                            {new Date(agent.createdAt || agent._id?.getTimestamp?.()).toLocaleDateString()}
+                          </span>
+                        </td>
+                        <td className="px-4 py-2">
+                          <div className="flex justify-end space-x-2">
+                            <a
+                              href={`mailto:${agent.email}`}
+                              className="btn btn-sm bg-blue-500 text-white hover:bg-blue-600"
+                            >
+                              <FaEnvelope className="mr-1" /> Email
+                            </a>
+                            <button
+                              onClick={() => handleDeleteAgent(agent.email)}
+                              className="btn btn-sm bg-red-500 text-white hover:bg-red-600"
+                            >
+                              <FaTrashAlt className="mr-1" /> Demote
+                            </button>
                           </div>
-                        </div>
-                      </td>
-                      <td className="text-gray-600">{app.email}</td>
-                      <td>
-                        <span className="badge badge-ghost badge-sm">
-                          {app.appliedAt ? new Date(app.appliedAt).toLocaleDateString() : 
-                           app.createdAt ? new Date(app.createdAt).toLocaleDateString() : 'N/A'}
-                        </span>
-                      </td>
-                      <td>
-                        <div className="flex justify-end space-x-2">
-                          <button
-                            onClick={() => handleApproveAgent(app._id, app.email)}
-                            className="btn btn-sm btn-success text-white"
-                          >
-                            <FaUserCheck className="mr-1" /> Approve
-                          </button>
-                          <button
-                            onClick={() => handleRejectAgent(app._id)}
-                            className="btn btn-sm btn-error text-white"
-                          >
-                            <FaTimes className="mr-1" /> Reject
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      ) : (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          {agents.length === 0 ? (
-            <div className="p-8 text-center">
-              <div className="text-gray-400 mb-4">
-                <FaUserTie className="inline-block text-4xl" />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-              <h3 className="text-lg font-medium text-gray-700">No active agents</h3>
-              <p className="text-gray-500">Approved agents will appear in this list.</p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="table">
-                <thead className="bg-gray-50 text-gray-600">
-                  <tr>
-                    <th className="font-medium">Agent</th>
-                    <th className="font-medium">Email</th>
-                    <th className="font-medium">Joined</th>
-                    <th className="font-medium text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {agents.map(agent => (
-                    <tr key={agent._id} className="hover:bg-gray-50">
-                      <td>
-                        <div className="flex items-center space-x-3">
-                          <div className="avatar">
-                            <div className="mask mask-squircle w-10 h-10">
-                              <img src={agent.photoURL || 'https://i.ibb.co/5GzXkwq/user.png'} alt="Avatar" />
-                            </div>
-                          </div>
-                          <div>
-                            <div className="font-medium">{agent.name || 'N/A'}</div>
-                            <div className="text-sm text-gray-500">Agent</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="text-gray-600">{agent.email}</td>
-                      <td>
-                        <span className="badge badge-ghost badge-sm">
-                          {new Date(agent.createdAt || agent._id?.getTimestamp?.()).toLocaleDateString()}
-                        </span>
-                      </td>
-                      <td>
-                        <div className="flex justify-end space-x-2">
-                          <a 
-                            href={`mailto:${agent.email}`} 
-                            className="btn btn-sm btn-primary text-white"
-                          >
-                            <FaEnvelope className="mr-1" /> Email
-                          </a>
-                          <button
-                            onClick={() => handleDeleteAgent(agent.email)}
-                            className="btn btn-sm btn-error text-white"
-                          >
-                            <FaTrashAlt className="mr-1" /> Demote
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      )}
+            )}
+          </div>
+        </TabPanel>
+      </Tabs>
     </div>
   );
 };
