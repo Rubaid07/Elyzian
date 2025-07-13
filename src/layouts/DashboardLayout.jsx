@@ -26,7 +26,7 @@ const DashboardLayout = () => {
 
     axiosSecure.get(`/users/${user.email}`)
       .then(res => setRole(res.data?.role || 'customer'))
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => setLoading(false));
   }, [user?.email, axiosSecure]);
 
@@ -66,7 +66,6 @@ const DashboardLayout = () => {
   const pathname = location.pathname;
   const pageTitle = () => {
     const match = navLinks.find(link => pathname.startsWith(link.to));
-    if (pathname.includes('/dashboard/edit-blog')) return 'Edit Blog';
     return match ? match.label : 'Dashboard';
   };
 
@@ -111,9 +110,9 @@ const DashboardLayout = () => {
               {breadcrumbs.map((crumb, i) => (
                 <div key={crumb.path} className="flex items-center">
                   {i > 0 && <span className="mx-2">/</span>}
-                  <Link to={crumb.path} className="hover:text-sky-700 capitalize">
+                  <span className="capitalize">
                     {crumb.name}
-                  </Link>
+                  </span>
                 </div>
               ))}
             </div>
@@ -159,11 +158,10 @@ const DashboardLayout = () => {
                     onClick={closeDrawer}
                     className={() => {
                       const isSubRouteActive = pathname.startsWith(to);
-                      return `flex items-center gap-3 px-4 py-3 rounded-lg transition-colors duration-200 ${
-                        isSubRouteActive
+                      return `flex items-center gap-3 px-4 py-3 rounded-lg transition-colors duration-200 ${isSubRouteActive
                           ? 'bg-sky-50 text-sky-700 font-medium border-l-4 border-sky-700'
                           : 'hover:bg-gray-100 text-gray-700'
-                      }`;
+                        }`;
                     }}
                   >
                     <span className="text-sky-600">{icon}</span>
