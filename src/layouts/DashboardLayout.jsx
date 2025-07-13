@@ -44,7 +44,6 @@ const DashboardLayout = () => {
 
   const navLinks = [
     { label: 'Dashboard Overview', to: '/dashboard/dashboard-overview', icon: <FaTachometerAlt className="text-lg" /> },
-    { label: 'Profile', to: '/dashboard/profile', icon: <FaUser className="text-lg" /> },
     ...(role === 'admin' ? [
       { label: 'Manage Users', to: '/dashboard/manage-users', icon: <FaUsersCog className="text-lg" /> },
       { label: 'Manage Policies', to: '/dashboard/manage-policies', icon: <FaFileInvoiceDollar className="text-lg" /> },
@@ -60,7 +59,8 @@ const DashboardLayout = () => {
       { label: 'Payment Status', to: '/dashboard/payment-status', icon: <FaMoneyBillWave className="text-lg" /> },
       { label: 'Claim Request', to: '/dashboard/claim-request', icon: <FaHandsHelping className="text-lg" /> },
       { label: 'Apply as Agent', to: '/dashboard/apply-agent', icon: <FaUserTie className="text-lg" /> }
-    ])
+    ]),
+     { label: 'Profile', to: '/dashboard/profile', icon: <FaUser className="text-lg" /> },
   ];
 
   const pathname = location.pathname;

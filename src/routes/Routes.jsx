@@ -96,18 +96,18 @@ export const router = createBrowserRouter([
       }
     ]
   },
- {
+  {
     path: 'dashboard',
     element: <PrivateRoute>
       <DashboardLayout></DashboardLayout>
     </PrivateRoute>,
     children: [
       {
-        index: true, // এটি নিশ্চিত করবে যে /dashboard ভিজিট করলে এটি ডিফল্টভাবে লোড হবে
-        element: <DashboardOverview />, // Component এর বদলে element ব্যবহার করুন
+        index: true,
+        element: <DashboardOverview />,
       },
       {
-        path: 'dashboard-overview', // এটি না রাখলেও চলবে যদি আপনি index: true ব্যবহার করেন
+        path: 'dashboard-overview',
         Component: DashboardOverview,
       },
       {

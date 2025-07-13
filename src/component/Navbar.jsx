@@ -68,7 +68,7 @@ export default function Navbar() {
                   >
                     <div className="w-10 rounded-full overflow-hidden">
                       <img
-                        src={user.photoURL || '/default-avatar.png'}
+                        src={user.photoURL || 'https://i.ibb.co/5GzXkwq/user.png'}
                         alt="User avatar"
                       />
                     </div>
@@ -107,7 +107,7 @@ export default function Navbar() {
                   >
                     <div className="w-10 rounded-full overflow-hidden">
                       <img
-                        src={user.photoURL || '/default-avatar.png'}
+                        src={user.photoURL || 'https://i.ibb.co/5GzXkwq/user.png'}
                         alt="User avatar"
                       />
                     </div>

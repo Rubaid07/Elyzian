@@ -79,7 +79,7 @@ const Register = () => {
       .catch(error => {
         toast.error(error.message);
         setLoading(false);
-      });
+      })
 
   };
 
@@ -205,7 +205,7 @@ const Register = () => {
           >
              {loading ? (
             <>
-              <span className="loading loading-spinner loading-sm"></span> Creating...
+              <span className="loading loading-spinner loading-sm mr-1"></span> Creating...
             </>
           ) : (
             'Create Account'
