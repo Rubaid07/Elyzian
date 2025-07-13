@@ -26,7 +26,7 @@ const EditBlog = () => {
             .finally(() => setLoading(false));
     }, [id, axiosSecure]);
 
-    const handleChange = (e) => {
+    const handleUpdate = (e) => {
         const { name, value } = e.target;
         setBlog(prev => ({ ...prev, [name]: value }));
     };
@@ -91,18 +91,19 @@ const EditBlog = () => {
                         type="text"
                         name="title"
                         value={blog.title}
-                        onChange={handleChange}
+                        onChange={handleUpdate}
                         className="input input-bordered w-full"
                         required
                     />
                 </div>
 
                 <select
+                    name="category"
                     className="select select-bordered w-full"
                     value={blog.category}
-                    onChange={handleChange}
+                    onChange={handleUpdate}
                 >
-                    <option value="">Select Category</option>
+                    <option value="" disabled>Select Category</option>
                     <option value="Life">Life</option>
                     <option value="Health">Health</option>
                     <option value="Retirement">Retirement</option>
@@ -115,7 +116,7 @@ const EditBlog = () => {
                     <textarea
                         name="description"
                         value={blog.description}
-                        onChange={handleChange}
+                        onChange={handleUpdate}
                         rows="4"
                         className="textarea textarea-bordered w-full"
                         required
@@ -129,7 +130,7 @@ const EditBlog = () => {
                             type="number"
                             name="premium"
                             value={blog.premium}
-                            onChange={handleChange}
+                            onChange={handleUpdate}
                             className="input input-bordered w-full"
                             required
                         />
@@ -141,7 +142,7 @@ const EditBlog = () => {
                             type="number"
                             name="coverageAmount"
                             value={blog.coverageAmount}
-                            onChange={handleChange}
+                            onChange={handleUpdate}
                             className="input input-bordered w-full"
                             required
                         />

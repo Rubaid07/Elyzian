@@ -79,7 +79,7 @@ const AddBlog = () => {
           {...register('category', { required: true })}
           className="select select-bordered w-full"
         >
-          <option value="">Select Category</option>
+          <option value="" disabled>Select Category</option>
           <option value="Life">Life</option>
           <option value="Health">Health</option>
           <option value="Retirement">Retirement</option>

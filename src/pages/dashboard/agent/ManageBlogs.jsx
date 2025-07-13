@@ -70,7 +70,7 @@ const ManageBlogs = () => {
       ) : (
         <div className="overflow-x-auto">
           <table className="table w-full">
-            <thead className="bg-sky-100 text-gray-700">
+            <thead className="bg-gray-100 text-gray-700">
               <tr>
                 <th>#</th>
                 <th>Title</th>
@@ -81,7 +81,7 @@ const ManageBlogs = () => {
             </thead>
             <tbody>
               {blogs.map((blog, i) => (
-                <tr key={blog._id} className="hover:bg-gray-50">
+                <tr key={blog._id}>
                   <td>{i + 1}</td>
                   <td>{blog.title}</td>
                   <td>{blog.category || 'N/A'}</td>
@@ -89,7 +89,7 @@ const ManageBlogs = () => {
                   <td className="flex gap-2">
                     <button
                       onClick={() => handleEdit(blog._id)}
-                      className="btn btn-sm bg-yellow-400 text-white hover:bg-yellow-500"
+                      className="btn btn-sm bg-sky-400 text-white hover:bg-sky-500"
                     >
                       Edit
                     </button>
