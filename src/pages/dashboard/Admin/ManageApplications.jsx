@@ -76,8 +76,10 @@ const ManageApplications = () => {
   return (
     <div className="p-6 bg-white rounded shadow border border-gray-200">
       <h2 className="text-2xl font-semibold mb-4">Manage Policy Applications</h2>
-
-      <div className="overflow-x-auto">
+      {applications.length === 0 ? (
+        <p>No Application found.</p>
+      ) : (
+         <div className="overflow-x-auto">
         <table className="table w-full">
           <thead className="bg-gray-100 text-gray-700">
             <tr>
@@ -134,7 +136,7 @@ const ManageApplications = () => {
           </tbody>
         </table>
       </div>
-
+      )}
       {selectedApp && (
         <dialog open className="modal">
           <div className="modal-box max-w-2xl">
