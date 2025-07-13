@@ -1,4 +1,4 @@
-import { Outlet, NavLink, Link, useLocation } from 'react-router';
+import { Outlet, NavLink, Link, useLocation, useNavigate } from 'react-router';
 import { useContext, useEffect, useState } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import logo from '../assets/logo.png';
@@ -6,8 +6,7 @@ import {
   FaUser, FaUserShield, FaList, FaWallet, FaUsersCog,
   FaUserFriends, FaBlogger, FaPenFancy, FaFileInvoiceDollar,
   FaSignOutAlt, FaBars, FaHandsHelping, FaMoneyBillWave,
-  FaTachometerAlt, FaHome,
-  FaUserTie
+  FaTachometerAlt, FaHome, FaUserTie
 } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 import useAxiosSecure from '../hooks/useAxiosSecure';
@@ -16,6 +15,7 @@ import Spinner from '../component/Loader/Spinner';
 const DashboardLayout = () => {
   const { user, logOut } = useContext(AuthContext);
   const location = useLocation();
+  const navigate = useNavigate();
   const axiosSecure = useAxiosSecure();
 
   const [role, setRole] = useState(null);
@@ -30,27 +30,20 @@ const DashboardLayout = () => {
       .finally(() => setLoading(false));
   }, [user?.email, axiosSecure]);
 
+  useEffect(() => {
+    if (location.pathname === '/dashboard') {
+      navigate('/dashboard/dashboard-overview', { replace: true });
+    }
+  }, [location.pathname, navigate]);
+
   const handleLogout = () => {
     logOut()
       .then(() => toast.success('Logged out successfully'))
       .catch(err => console.error(err));
   };
 
-  const getPageTitle = () => {
-    const match = navLinks.find(link => location.pathname.startsWith(link.to));
-    return match?.label || 'Dashboard';
-  };
-
-  const breadcrumbs = location.pathname
-    .split('/')
-    .filter(Boolean)
-    .map((segment, index, arr) => ({
-      name: segment.replace(/-/g, ' '),
-      path: `/${arr.slice(0, index + 1).join('/')}`
-    }));
-
   const navLinks = [
-    { label: 'Dashboard', to: '/dashboard', icon: <FaTachometerAlt className="text-lg" /> },
+    { label: 'Dashboard Overview', to: '/dashboard/dashboard-overview', icon: <FaTachometerAlt className="text-lg" /> },
     { label: 'Profile', to: '/dashboard/profile', icon: <FaUser className="text-lg" /> },
     ...(role === 'admin' ? [
       { label: 'Manage Users', to: '/dashboard/manage-users', icon: <FaUsersCog className="text-lg" /> },
@@ -69,11 +62,33 @@ const DashboardLayout = () => {
       { label: 'Apply as Agent', to: '/dashboard/apply-agent', icon: <FaUserTie className="text-lg" /> }
     ])
   ];
-  const closeDrawer = () => {
-  const drawerCheckbox = document.getElementById('dashboard-drawer');
-  if (drawerCheckbox) drawerCheckbox.checked = false;
-};
 
+  const pathname = location.pathname;
+  const pageTitle = () => {
+    const match = navLinks.find(link => pathname.startsWith(link.to));
+    if (pathname.includes('/dashboard/edit-blog')) return 'Edit Blog';
+    return match ? match.label : 'Dashboard';
+  };
+
+  const breadcrumbs = pathname
+    .split('/')
+    .filter(Boolean)
+    .map((segment, index, arr) => {
+      const fullPath = `/${arr.slice(0, index + 1).join('/')}`;
+      let name = segment.replace(/-/g, ' ');
+      const navMatch = navLinks.find(link => link.to === fullPath);
+      if (navMatch) name = navMatch.label;
+      else if (segment === 'dashboard') name = 'Dashboard';
+      return {
+        name: name.charAt(0).toUpperCase() + name.slice(1),
+        path: fullPath
+      };
+    });
+
+  const closeDrawer = () => {
+    const drawerCheckbox = document.getElementById('dashboard-drawer');
+    if (drawerCheckbox) drawerCheckbox.checked = false;
+  };
 
   if (loading) return <Spinner />;
 
@@ -81,7 +96,6 @@ const DashboardLayout = () => {
     <div className="drawer lg:drawer-open">
       <input id="dashboard-drawer" type="checkbox" className="drawer-toggle" />
       <div className="drawer-content flex flex-col bg-gray-50 min-h-screen">
-        
         <header className="lg:hidden flex items-center justify-between p-4 bg-white shadow-sm">
           <label htmlFor="dashboard-drawer" className="btn btn-ghost btn-circle">
             <FaBars className="text-sky-700 text-xl" />
@@ -92,7 +106,7 @@ const DashboardLayout = () => {
 
         <header className="hidden lg:flex items-center justify-between p-4 bg-white shadow-sm border-b border-gray-200">
           <div>
-            <h1 className="text-xl font-semibold text-gray-800 capitalize">{getPageTitle()}</h1>
+            <h1 className="text-xl font-semibold text-gray-800 capitalize">{pageTitle()}</h1>
             <div className="flex items-center text-sm text-gray-500">
               {breadcrumbs.map((crumb, i) => (
                 <div key={crumb.path} className="flex items-center">
@@ -114,7 +128,7 @@ const DashboardLayout = () => {
         </main>
       </div>
 
-       <div className="drawer-side z-20">
+      <div className="drawer-side z-20">
         <label htmlFor="dashboard-drawer" className="drawer-overlay"></label>
 
         <aside className="menu p-4 w-72 min-h-full bg-white text-base-content flex flex-col border-r border-gray-200">
@@ -131,8 +145,8 @@ const DashboardLayout = () => {
               </div>
             </div>
             <div className="overflow-hidden">
-              <p className="font-medium truncate">{user?.displayName || "Guest User"}</p>
-              <p className="text-sm text-gray-500 truncate" title={user?.email || "No email"}>{user?.email || "No email"}</p>
+              <p className="font-medium truncate">{user?.displayName || 'Guest User'}</p>
+              <p className="text-sm text-gray-500 truncate" title={user?.email || 'No email'}>{user?.email || 'No email'}</p>
             </div>
           </div>
 
@@ -142,14 +156,15 @@ const DashboardLayout = () => {
                 <li key={to}>
                   <NavLink
                     to={to}
-                    end
                     onClick={closeDrawer}
-                    className={({ isActive }) =>
-                      `flex items-center gap-3 px-4 py-3 rounded-lg transition-colors duration-200 ${isActive
-                        ? 'bg-sky-50 text-sky-700 font-medium border-l-4 border-sky-700'
-                        : 'hover:bg-gray-100 text-gray-700'
-                      }`
-                    }
+                    className={() => {
+                      const isSubRouteActive = pathname.startsWith(to);
+                      return `flex items-center gap-3 px-4 py-3 rounded-lg transition-colors duration-200 ${
+                        isSubRouteActive
+                          ? 'bg-sky-50 text-sky-700 font-medium border-l-4 border-sky-700'
+                          : 'hover:bg-gray-100 text-gray-700'
+                      }`;
+                    }}
                   >
                     <span className="text-sky-600">{icon}</span>
                     <span>{label}</span>

@@ -41,6 +41,7 @@ const AddBlog = () => {
 
     const blogData = {
       title: data.title,
+      category: data.category,
       description: data.description,
       premium: parseFloat(data.premium),
       coverageAmount: parseFloat(data.coverageAmount),
@@ -64,8 +65,8 @@ const AddBlog = () => {
   };
 
   return (
-  
-     <div className="max-w-2xl mx-auto bg-white p-8 shadow rounded-lg mt-10">
+
+    <div className="max-w-2xl mx-auto bg-white p-8 shadow rounded-lg mt-10">
       <h2 className="text-2xl font-bold mb-6">Create New Blog</h2>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
@@ -73,6 +74,18 @@ const AddBlog = () => {
           <label className="font-medium">Title</label>
           <input {...register('title', { required: true })} className="input input-bordered w-full" />
         </div>
+
+        <select
+          {...register('category', { required: true })}
+          className="select select-bordered w-full"
+        >
+          <option value="">Select Category</option>
+          <option value="Life">Life</option>
+          <option value="Health">Health</option>
+          <option value="Retirement">Retirement</option>
+          <option value="Investment">Investment</option>
+        </select>
+
 
         <div>
           <label className="font-medium">Description</label>

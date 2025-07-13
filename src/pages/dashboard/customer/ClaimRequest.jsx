@@ -88,7 +88,7 @@ const ClaimRequest = () => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">Supporting Documents (URL)</label>
+          <label className="block text-sm font-medium mb-1">Supporting Documents (Optional)</label>
           <input
             type="url"
             name="documents"

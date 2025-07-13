@@ -35,6 +35,7 @@ import FAQs from "../pages/FAQs";
 import Agents from "../pages/Agents";
 import DashboardOverview from "../pages/dashboard/DashboardOverview";
 import ApplyAsAgent from "../pages/dashboard/customer/ApplyAsAgent";
+import EditBlog from "../pages/dashboard/agent/EditBlog";
 
 
 export const router = createBrowserRouter([
@@ -95,14 +96,18 @@ export const router = createBrowserRouter([
       }
     ]
   },
-  {
+ {
     path: 'dashboard',
     element: <PrivateRoute>
       <DashboardLayout></DashboardLayout>
     </PrivateRoute>,
     children: [
       {
-        index: true,
+        index: true, // এটি নিশ্চিত করবে যে /dashboard ভিজিট করলে এটি ডিফল্টভাবে লোড হবে
+        element: <DashboardOverview />, // Component এর বদলে element ব্যবহার করুন
+      },
+      {
+        path: 'dashboard-overview', // এটি না রাখলেও চলবে যদি আপনি index: true ব্যবহার করেন
         Component: DashboardOverview,
       },
       {
@@ -144,6 +149,10 @@ export const router = createBrowserRouter([
       {
         path: 'add-blog',
         Component: AddBlog
+      },
+      {
+        path: 'manage-blogs/edit-blog/:id',
+        Component: EditBlog
       },
 
       // Customer Routes
