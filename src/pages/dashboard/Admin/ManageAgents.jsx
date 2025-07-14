@@ -194,7 +194,7 @@ const ManageAgents = () => {
                           <div className="flex items-center space-x-3">
                             <div className="avatar">
                               <div className="mask mask-squircle w-10 h-10">
-                                <img src={app.photoURL || 'https://i.ibb.co/5GzXkwq/user.png'} alt="Avatar" />
+                                <img src={app.photo || 'https://i.ibb.co/5GzXkwq/user.png'} alt="Avatar" />
                               </div>
                             </div>
                             <div>
@@ -262,7 +262,7 @@ const ManageAgents = () => {
                           <div className="flex items-center space-x-3">
                             <div className="avatar">
                               <div className="mask mask-squircle w-10 h-10">
-                                <img src={agent.photoURL || 'https://i.ibb.co/5GzXkwq/user.png'} alt="Avatar" />
+                                <img src={agent.photo || 'https://i.ibb.co/5GzXkwq/user.png'} alt="Avatar" />
                               </div>
                             </div>
                             <div>

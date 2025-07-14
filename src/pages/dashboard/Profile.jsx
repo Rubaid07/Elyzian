@@ -77,7 +77,6 @@ const Profile = () => {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
         photo = res.data.imageUrl;
-        Swal.fire('Uploaded!', 'New photo uploaded successfully.', 'success');
       } catch (err) {
         console.error("Image upload failed:", err);
         Swal.fire('Error', 'Failed to upload new photo.', 'error');
@@ -123,7 +122,6 @@ const Profile = () => {
       setUploadingImage(false);
     }
   };
-
 
   if (loading || !userInfo) return <Spinner />;
 

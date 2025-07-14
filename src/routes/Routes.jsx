@@ -52,7 +52,7 @@ export const router = createBrowserRouter([
         Component: AllPolicies
       },
       {
-        path: 'policy-details/:id',
+        path: 'policies/:id',
         Component: PolicyDetails
       },
       {
@@ -73,11 +73,11 @@ export const router = createBrowserRouter([
       },
 
       {
-        path: 'quote',
+        path: 'quote/:id',
         element: <PrivateRoute><QuotePage /></PrivateRoute>
       },
       {
-        path: 'apply',
+        path: 'apply/:id',
         element: <PrivateRoute><ApplicationFormPage /></PrivateRoute>
       },
     ]
