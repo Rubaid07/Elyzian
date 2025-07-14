@@ -251,7 +251,7 @@ const Profile = () => {
               <div className="modal-action flex justify-between items-center">
                 <button
                   type="submit"
-                  className="btn btn-primary"
+                  className="btn bg-sky-700 text-white hover:bg-sky-800"
                   disabled={uploadingImage}
                 >
                   {uploadingImage ? (

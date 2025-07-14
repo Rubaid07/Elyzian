@@ -1,5 +1,3 @@
-// src/hooks/useAxiosSecure.js
-
 import axios from "axios";
 import { getAuth } from "firebase/auth";
 import { useEffect } from "react";
