@@ -149,9 +149,9 @@ const Profile = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-blue-50 py-10 px-4 md:px-10">
+    <div className="min-h-screen py-10 px-4 md:px-10">
       <div className="max-w-4xl mx-auto bg-white p-8 rounded-2xl shadow-lg border border-gray-200">
-        <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
+        <div className="flex flex-col md:flex-row md:items-start gap-6">
           <img
             src={userInfo.photo || 'https://i.ibb.co/5GzXkwq/user.png'}
             alt="Profile"
@@ -159,7 +159,7 @@ const Profile = () => {
           />
           <div className="flex-1">
             <h2 className="text-3xl font-semibold text-gray-800 flex items-center gap-2">
-              <FaUser className="text-blue-600" /> {userInfo.name || 'Unnamed User'}
+              <FaUser className="text-blue-600" /> {userInfo.name}
             </h2>
             <p className="text-gray-600 flex items-center gap-2 mt-1">
               <FaEnvelope className="text-blue-500" /> {userInfo.email}
@@ -179,7 +179,7 @@ const Profile = () => {
               setImageFile(null);
               setImagePreview(userInfo.photo || 'https://i.ibb.co/5GzXkwq/user.png');
             }}
-            className="btn btn-outline btn-primary mt-4 md:mt-0"
+            className="btn w-max border-sky-700 bg-transparent text-sky-700 mt-4 md:mt-0 hover:bg-sky-700 hover:text-white"
           >
             <FaEdit className="mr-1" /> Edit Profile
           </button>
@@ -191,7 +191,7 @@ const Profile = () => {
               {dashboardCards.map((card, index) => (
                 <div
                   key={index}
-                  className="bg-white p-6 rounded-lg shadow-md flex items-center gap-4 transition-transform transform hover:scale-105 hover:shadow-lg"
+                  className="bg-white p-6 rounded-lg shadow-md flex items-center gap-4"
                 >
                   <div className="flex-shrink-0">
                     {getCardIcon(card.title)}
