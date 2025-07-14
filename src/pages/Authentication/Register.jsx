@@ -1,4 +1,4 @@
-import { use, useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { FiEye, FiEyeOff } from 'react-icons/fi';
 import { FaArrowUp, FaUser } from 'react-icons/fa';
@@ -6,9 +6,10 @@ import { AuthContext } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 import logo from '../../assets/logo.png';
 import axios from 'axios';
+import { auth } from '../../firebase/firebase.config';
 
 const Register = () => {
-  const { createUser, updateUser, setUser, signInWithGoogle } = use(AuthContext);
+  const { createUser, updateUser, setUser, signInWithGoogle } = useContext(AuthContext);
   const [passwordError, setPasswordError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
@@ -27,14 +28,17 @@ const Register = () => {
 
     if (password.length < 6) {
       setPasswordError("Password must be at least 6 characters");
+      setLoading(false);
       return;
     }
     if (!/[A-Z]/.test(password)) {
       setPasswordError("Password must contain at least one uppercase letter");
+      setLoading(false);
       return;
     }
     if (!/[a-z]/.test(password)) {
       setPasswordError("Password must contain at least one lowercase letter");
+      setLoading(false);
       return;
     }
     setPasswordError("");
@@ -51,6 +55,7 @@ const Register = () => {
         imageUrl = res.data.imageUrl;
       } catch (err) {
         toast.error("Image upload failed");
+        setLoading(false);
         return;
       }
     }
@@ -61,12 +66,14 @@ const Register = () => {
 
         await updateUser({ displayName: name, photoURL: imageUrl });
 
+        await user.reload();
+        const updatedFirebaseUser = auth.currentUser;
+
         const token = await user.getIdToken();
         localStorage.setItem('access-token', token);
 
-        setUser({ ...user, displayName: name, photoURL: imageUrl });
-
-        await axios.put(`${import.meta.env.VITE_API_URL}/users/${user.email}`, {
+        setUser({ ...updatedFirebaseUser, displayName: name, photoURL: imageUrl });
+        await axios.post(`${import.meta.env.VITE_API_URL}/users`, {
           name,
           email,
           photo: imageUrl,
@@ -79,19 +86,30 @@ const Register = () => {
       .catch(error => {
         toast.error(error.message);
         setLoading(false);
-      })
-
+      });
   };
 
-  const handleGoogleSignIn = () => {
-    signInWithGoogle()
-      .then(() => {
-        toast.success("Login successfully");
-        navigate("/");
-      })
-      .catch(error => {
-        toast.error(error.message);
+  const handleGoogleSignIn = async () => {
+    setLoading(true);
+    try {
+      const result = await signInWithGoogle();
+      const user = result.user;
+      const token = await user.getIdToken();
+      localStorage.setItem('access-token', token);
+
+      await axios.post(`${import.meta.env.VITE_API_URL}/users`, {
+        name: user.displayName || '',
+        email: user.email,
+        photo: user.photoURL || 'https://i.ibb.co/5GzXkwq/user.png',
       });
+
+      toast.success("Logged in successfully");
+      navigate(`${location.state ? location.state : "/"}`);
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleImageChange = (e) => {
@@ -99,6 +117,9 @@ const Register = () => {
     if (file) {
       setImagePreview(URL.createObjectURL(file));
       setImageFile(file);
+    } else {
+      setImagePreview(null);
+      setImageFile(null);
     }
   };
 
@@ -116,15 +137,15 @@ const Register = () => {
         </div>
 
         <form onSubmit={handleSignUp} className="space-y-4">
-          <div className="mb-6 flex">
-            <label htmlFor="profileUpload" className="relative w-15 h-15 bg-gray-200 rounded-full flex items-center justify-center cursor-pointer overflow-hidden">
+          <div className="mb-6 flex justify-center">
+            <label htmlFor="profileUpload" className="relative w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center cursor-pointer overflow-hidden border-2 border-blue-300">
               {imagePreview ? (
                 <img src={imagePreview} alt="Profile" className="w-full h-full object-cover" />
               ) : (
-                <FaUser className="text-gray-500 text-3xl" />
+                <FaUser className="text-gray-500 text-5xl" />
               )}
-              <div className="absolute bottom-1 right-1 bg-white rounded-full p-1 shadow">
-                <FaArrowUp className="text-sky-700 text-xs" />
+              <div className="absolute bottom-0 right-0 bg-white rounded-full p-2 shadow-md">
+                <FaArrowUp className="text-sky-700 text-base" />
               </div>
             </label>
             <input
@@ -184,18 +205,18 @@ const Register = () => {
             </div>
           </div>
 
-          {passwordError && <p className='text-red-400 text-xs'>{passwordError}</p>}
+          {passwordError && <p className='text-red-400 text-xs mt-2'>{passwordError}</p>}
 
-          <div className="flex items-center">
+          <div className="flex items-center mt-4">
             <input
               id="terms"
               name="terms"
               type="checkbox"
               required
-              className="h-4 w-4 text-sky-700 rounded"
+              className="h-4 w-4 text-sky-700 rounded focus:ring-sky-700"
             />
             <label htmlFor="terms" className="ml-2 block text-sm text-gray-700">
-              I agree to the <Link to="/terms" className="text-sky-700 hover:underline">Terms of Service</Link> and <Link to="/privacy" className="text-sky-700 hover:underline">Privacy Policy</Link>
+              I agree to the <Link to="/terms" className="text-sky-700 hover:underline font-medium">Terms of Service</Link> and <Link to="/privacy" className="text-sky-700 hover:underline font-medium">Privacy Policy</Link>
             </label>
           </div>
 
@@ -203,13 +224,13 @@ const Register = () => {
             type="submit"
             className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-sky-700 hover:bg-sky-800 cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-800 transition duration-150" disabled={loading}
           >
-             {loading ? (
-            <>
-              <span className="loading loading-spinner loading-sm mr-1"></span> Creating...
-            </>
-          ) : (
-            'Create Account'
-          )}
+            {loading ? (
+              <>
+                <span className="loading loading-spinner loading-sm mr-2"></span> Creating...
+              </>
+            ) : (
+              'Create Account'
+            )}
           </button>
         </form>
 
@@ -225,6 +246,7 @@ const Register = () => {
         <button
           onClick={handleGoogleSignIn}
           className="w-full flex items-center justify-center gap-2 py-2 px-4 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors cursor-pointer"
+          disabled={loading}
         >
           {/* Google SVG Icon */}
           <svg aria-label="Google logo" width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
