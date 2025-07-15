@@ -36,6 +36,7 @@ import Agents from "../pages/Agents";
 import DashboardOverview from "../pages/dashboard/DashboardOverview";
 import ApplyAsAgent from "../pages/dashboard/customer/ApplyAsAgent";
 import EditBlog from "../pages/dashboard/agent/EditBlog";
+import MyApplications from "../pages/dashboard/customer/MyApplications";
 
 
 export const router = createBrowserRouter([
@@ -175,6 +176,10 @@ export const router = createBrowserRouter([
       {
         path: 'apply-agent',
         Component: ApplyAsAgent
+      },
+      {
+        path: 'my-applications',
+        Component: MyApplications
       }
     ]
   }

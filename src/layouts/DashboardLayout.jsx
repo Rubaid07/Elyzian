@@ -6,7 +6,8 @@ import {
   FaUser, FaUserShield, FaList, FaWallet, FaUsersCog,
   FaUserFriends, FaBlogger, FaPenFancy, FaFileInvoiceDollar,
   FaSignOutAlt, FaBars, FaHandsHelping, FaMoneyBillWave,
-  FaTachometerAlt, FaHome, FaUserTie
+  FaTachometerAlt, FaHome, FaUserTie,
+  FaRegFileAlt
 } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 import useAxiosSecure from '../hooks/useAxiosSecure';
@@ -58,7 +59,8 @@ const DashboardLayout = () => {
       { label: 'My Policies', to: '/dashboard/my-policies', icon: <FaList className="text-lg" /> },
       { label: 'Payment Status', to: '/dashboard/payment-status', icon: <FaMoneyBillWave className="text-lg" /> },
       { label: 'Claim Request', to: '/dashboard/claim-request', icon: <FaHandsHelping className="text-lg" /> },
-      { label: 'Apply as Agent', to: '/dashboard/apply-agent', icon: <FaUserTie className="text-lg" /> }
+      { label: 'Apply as Agent', to: '/dashboard/apply-agent', icon: <FaUserTie className="text-lg" /> },
+      { label: 'My Applications', to: '/dashboard/my-applications', icon: <FaRegFileAlt className="text-lg" /> },
     ]),
      { label: 'Profile', to: '/dashboard/profile', icon: <FaUser className="text-lg" /> },
   ];
