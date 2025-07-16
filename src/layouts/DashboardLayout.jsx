@@ -6,12 +6,13 @@ import {
   FaUser, FaUserShield, FaList, FaWallet, FaUsersCog,
   FaUserFriends, FaBlogger, FaPenFancy, FaFileInvoiceDollar,
   FaSignOutAlt, FaBars, FaHandsHelping, FaMoneyBillWave,
-  FaTachometerAlt, FaHome, FaUserTie,
+  FaHome, FaUserTie,
   FaRegFileAlt
 } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 import useAxiosSecure from '../hooks/useAxiosSecure';
 import Spinner from '../component/Loader/Spinner';
+import { RxDashboard } from 'react-icons/rx';
 
 const DashboardLayout = () => {
   const { user, logOut } = useContext(AuthContext);
@@ -44,7 +45,7 @@ const DashboardLayout = () => {
   };
 
   const navLinks = [
-    { label: 'Dashboard Overview', to: '/dashboard/dashboard-overview', icon: <FaTachometerAlt className="text-lg" /> },
+    { label: 'Dashboard Overview', to: '/dashboard/dashboard-overview', icon: <RxDashboard className="text-lg" /> },
     ...(role === 'admin' ? [
       { label: 'Manage Users', to: '/dashboard/manage-users', icon: <FaUsersCog className="text-lg" /> },
       { label: 'Manage Policies', to: '/dashboard/manage-policies', icon: <FaFileInvoiceDollar className="text-lg" /> },

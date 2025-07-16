@@ -73,10 +73,14 @@ const Register = () => {
         localStorage.setItem('access-token', token);
 
         setUser({ ...updatedFirebaseUser, displayName: name, photoURL: imageUrl });
-        await axios.post(`${import.meta.env.VITE_API_URL}/users`, {
+
+        await axios.put(`${import.meta.env.VITE_API_URL}/users/${email}`, {
           name,
-          email,
           photo: imageUrl,
+        }, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
         });
 
         setLoading(false);

@@ -1,22 +1,59 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { useNavigate, useParams } from 'react-router';
 import useAxiosSecure from '../hooks/useAxiosSecure'; 
+import Spinner from '../component/Loader/Spinner';
 
 const ApplicationFormPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const axiosSecure = useAxiosSecure();
     const { register, handleSubmit, formState: { errors }, reset } = useForm();
+    const [policy, setPolicy] = useState(null);
+    const [loadingPolicy, setLoadingPolicy] = useState(true);
+
+    useEffect(() => {
+        const fetchPolicyDetails = async () => {
+            try {
+                setLoadingPolicy(true);
+                const res = await axiosSecure.get(`/policies/${id}`);
+                setPolicy(res.data);
+            } catch (err) {
+                console.error('Failed to fetch policy details:', err);
+                toast.error('Failed to load policy details.');
+                navigate('/');
+            } finally {
+                setLoadingPolicy(false);
+            }
+        };
+        if (id) {
+            fetchPolicyDetails();
+        }
+    }, [id, axiosSecure, navigate]);
 
     const onSubmit = async (data) => {
+        if (!policy) {
+            toast.error('Policy details not loaded. Please try again.');
+            return;
+        }
+
         try {
             const applicationData = {
                 policyId: id,
-                status: 'Pending',
-                submissionDate: new Date(),
-                ...data, 
+                policyName: policy.policyTitle,
+                applicantName: data.fullName,
+                email: data.email,
+                address: data.address,
+                nidSsn: data.nidSsn,
+                nomineeName: data.nomineeName,
+                nomineeRelationship: data.nomineeRelationship,
+                hasPreExistingConditions: data.hasPreExistingConditions || false,
+                hasBeenHospitalized: data.hasBeenHospitalized || false,
+                consumesAlcohol: data.consumesAlcohol || false,
+                
+                status: 'pending',
+                appliedAt: new Date(),
             };
             const res = await axiosSecure.post('/applications', applicationData);
 
@@ -33,11 +70,15 @@ const ApplicationFormPage = () => {
         }
     };
 
+    if (loadingPolicy) return <Spinner />; // লোডিং স্পিনার দেখান যখন পলিসি লোড হচ্ছে
+    if (!policy) return <div className="text-center mt-10">Policy not found or failed to load.</div>;
+
+
     return (
         <div className="container mx-auto p-6 bg-white rounded-lg shadow-md max-w-3xl mt-8 mb-8">
-            <h1 className="text-3xl font-bold text-center text-gray-800 mb-6">Apply for Policy</h1>
+            <h1 className="text-3xl font-bold text-center text-gray-800 mb-6">Apply for Policy: {policy.name}</h1> {/* পলিসির নাম দেখান */}
             <p className="text-center text-gray-600 mb-8">
-                Please provide your details to apply for the policy (Policy ID: {id}).
+                Please provide your details to apply for the policy "{policy.name}" (Policy ID: {id}).
             </p>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
