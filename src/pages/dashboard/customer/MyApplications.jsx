@@ -16,7 +16,7 @@ const MyApplications = () => {
             setLoadingApplications(false);
             return;
         }
-
+        
         const fetchMyApplications = async () => {
             setLoadingApplications(true);
             setError(null);
@@ -74,8 +74,8 @@ const MyApplications = () => {
                         {applications.map((app, index) => (
                             <tr key={app._id}>
                                 <th>{index + 1}</th>
-                                <td>{app.policyTitle || 'N/A'}</td>
-                                <td>{new Date(app.submissionDate).toLocaleDateString()}</td>
+                                <td>{app.policyName || 'N/A'}</td>
+                                <td>{new Date(app.appliedAt).toLocaleDateString()}</td>
                                 <td>
                                     <span className={`badge ${
                                         app.status === 'Pending' ? 'badge-info' :
