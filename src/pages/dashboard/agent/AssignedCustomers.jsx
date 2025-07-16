@@ -115,7 +115,7 @@ const AssignedCustomers = () => {
                 <table className="table w-full">
                     <thead>
                         <tr>
-                            <th></th>
+                            <th>#</th>
                             <th>Applicant Name</th>
                             <th>Applicant Email</th>
                             <th>Policy Title</th>

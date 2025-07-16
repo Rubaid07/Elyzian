@@ -60,7 +60,7 @@ const ApplicationFormPage = () => {
             if (res.data.insertedId) {
                 toast.success('Your application has been submitted successfully! We will contact you soon.');
                 reset();
-                navigate('/dashboard/my-applications');
+                navigate('/dashboard/my-policies');
             } else {
                 toast.error('Failed to submit application. Please try again.');
             }

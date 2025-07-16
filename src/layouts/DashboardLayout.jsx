@@ -61,7 +61,6 @@ const DashboardLayout = () => {
       { label: 'Payment Status', to: '/dashboard/payment-status', icon: <FaMoneyBillWave className="text-lg" /> },
       { label: 'Claim Request', to: '/dashboard/claim-request', icon: <FaHandsHelping className="text-lg" /> },
       { label: 'Apply as Agent', to: '/dashboard/apply-agent', icon: <FaUserTie className="text-lg" /> },
-      { label: 'My Applications', to: '/dashboard/my-applications', icon: <FaRegFileAlt className="text-lg" /> },
     ]),
      { label: 'Profile', to: '/dashboard/profile', icon: <FaUser className="text-lg" /> },
   ];
