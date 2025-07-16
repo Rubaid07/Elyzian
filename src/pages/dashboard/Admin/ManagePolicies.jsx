@@ -4,12 +4,17 @@ import toast from 'react-hot-toast';
 import { useForm } from 'react-hook-form';
 import useAxiosSecure from '../../../hooks/useAxiosSecure';
 import Spinner from '../../../component/Loader/Spinner';
+import axios from 'axios';
 
 const ManagePolicies = () => {
     const axiosSecure = useAxiosSecure();
     const [policies, setPolicies] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [editingPolicy, setEditingPolicy] = useState(null); 
+    const [editingPolicy, setEditingPolicy] = useState(null);
+
+    const [imageFile, setImageFile] = useState(null);
+    const [preview, setPreview] = useState(null);
+    const [imageUploadLoading, setImageUploadLoading] = useState(false);
 
     const modalRef = useRef(null);
 
@@ -41,9 +46,16 @@ const ManagePolicies = () => {
             setValue('coverageRange', policy.coverageRange || '');
             setValue('durationOptions', policy.durationOptions || '');
             setValue('basePremiumRate', policy.basePremiumRate || '');
-            setValue('policyImage', policy.policyImage || '');
+            if (policy.policyImage) {
+                setPreview(policy.policyImage);
+            } else {
+                setPreview(null);
+            }
+            setImageFile(null);
         } else {
             reset();
+            setPreview(null);
+            setImageFile(null);
         }
         if (modalRef.current) {
             modalRef.current.showModal();
@@ -56,15 +68,57 @@ const ManagePolicies = () => {
         }
         setEditingPolicy(null);
         reset();
+        setPreview(null);
+        setImageFile(null); 
+    };
+
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        setImageFile(file);
+        if (file) {
+            setPreview(URL.createObjectURL(file));
+        } else {
+            setPreview(null);
+        }
     };
 
     const onSubmit = async (data) => {
+        setImageUploadLoading(true);
+        let imageUrl = editingPolicy?.policyImage || null;
+
+        if (imageFile) {
+            const formData = new FormData();
+            formData.append('image', imageFile);
+
+            try {
+                const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/upload`, formData, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
+                imageUrl = res.data.imageUrl;
+                toast.success("Image uploaded successfully!");
+            } catch (err) {
+                console.error("Image upload failed:", err);
+                toast.error("Image upload failed.");
+                setImageUploadLoading(false);
+                return;
+            }
+        } else if (!imageUrl && !editingPolicy) {
+             toast.error('Please upload an image for the policy.');
+             setImageUploadLoading(false); 
+             return;
+        }
+
+        const policyData = {
+            ...data,
+            policyImage: imageUrl,
+        };
+
         try {
             if (editingPolicy) {
-                await axiosSecure.patch(`/admin/policies/${editingPolicy._id}`, data);
+                await axiosSecure.patch(`/admin/policies/${editingPolicy._id}`, policyData);
                 toast.success('Policy updated successfully!');
             } else {
-                await axiosSecure.post('/admin/policies', data);
+                await axiosSecure.post('/admin/policies', policyData);
                 toast.success('Policy added successfully!');
             }
             closeModal();
@@ -72,6 +126,8 @@ const ManagePolicies = () => {
         } catch (err) {
             console.error('Error saving policy:', err);
             toast.error(`Failed to ${editingPolicy ? 'update' : 'add'} policy.`);
+        } finally {
+            setImageUploadLoading(false);
         }
     };
 
@@ -261,21 +317,38 @@ const ManagePolicies = () => {
                         </div>
 
                         <div>
-                            <label className="block text-gray-700 text-sm font-bold mb-2">Policy Image URL</label>
+                            <label className="block text-gray-700 text-sm font-bold mb-2">Policy Image</label>
                             <input
-                                type="url"
-                                {...register('policyImage', { required: 'Policy Image URL is required' })}
-                                className="input input-bordered w-full"
+                                type="file"
+                                accept="image/*"
+                                onChange={handleImageChange}
+                                className="file-input file-input-bordered w-full"
                             />
-                            {errors.policyImage && <p className="text-red-500 text-xs mt-1">{errors.policyImage.message}</p>}
+                            {preview && (
+                                <img
+                                    src={preview}
+                                    alt="Policy Preview"
+                                    className="mt-2 w-32 h-32 object-cover rounded shadow"
+                                />
+                            )}
+                            {(!imageFile && !editingPolicy?.policyImage) && errors.policyImage && (
+                                <p className="text-red-500 text-xs mt-1">Policy Image is required</p>
+                            )}
                         </div>
 
                         <div className="modal-action">
                             <button
                                 type="submit"
                                 className="btn btn-block btn-primary bg-blue-600 hover:bg-blue-700 text-white"
+                                disabled={imageUploadLoading}
                             >
-                                {editingPolicy ? 'Update Policy' : 'Add Policy'}
+                                {imageUploadLoading ? (
+                                    <>
+                                        <span className="loading loading-spinner loading-sm"></span> Uploading...
+                                    </>
+                                ) : (
+                                    editingPolicy ? 'Update Policy' : 'Add Policy'
+                                )}
                             </button>
                             <button type="button" onClick={closeModal} className="btn btn-ghost mt-2">Cancel</button>
                         </div>
