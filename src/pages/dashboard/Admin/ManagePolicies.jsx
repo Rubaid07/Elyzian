@@ -95,7 +95,6 @@ const ManagePolicies = () => {
                     headers: { 'Content-Type': 'multipart/form-data' }
                 });
                 imageUrl = res.data.imageUrl;
-                toast.success("Image uploaded successfully!");
             } catch (err) {
                 console.error("Image upload failed:", err);
                 toast.error("Image upload failed.");
@@ -234,6 +233,7 @@ const ManagePolicies = () => {
                             >
                                 <option value="">Select Category</option>
                                 <option value="Term Life">Term Life</option>
+                                <option value="Endowment Plan">Endowment Plan</option>
                                 <option value="Senior Plan">Senior Plan</option>
                                 <option value="Health">Health</option>
                                 <option value="Investment">Investment</option>

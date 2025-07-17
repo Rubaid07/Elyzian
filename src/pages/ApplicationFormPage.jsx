@@ -1,11 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { use, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { useNavigate, useParams } from 'react-router';
-import useAxiosSecure from '../hooks/useAxiosSecure'; 
+import useAxiosSecure from '../hooks/useAxiosSecure';
 import Spinner from '../component/Loader/Spinner';
+import { AuthContext } from '../context/AuthContext';
 
 const ApplicationFormPage = () => {
+    const { user } = use(AuthContext)
     const { id } = useParams();
     const navigate = useNavigate();
     const axiosSecure = useAxiosSecure();
@@ -51,7 +53,7 @@ const ApplicationFormPage = () => {
                 hasPreExistingConditions: data.hasPreExistingConditions || false,
                 hasBeenHospitalized: data.hasBeenHospitalized || false,
                 consumesAlcohol: data.consumesAlcohol || false,
-                
+
                 status: 'pending',
                 appliedAt: new Date(),
             };
@@ -70,15 +72,15 @@ const ApplicationFormPage = () => {
         }
     };
 
-    if (loadingPolicy) return <Spinner />; // লোডিং স্পিনার দেখান যখন পলিসি লোড হচ্ছে
+    if (loadingPolicy) return <Spinner />;
     if (!policy) return <div className="text-center mt-10">Policy not found or failed to load.</div>;
 
 
     return (
         <div className="container mx-auto p-6 bg-white rounded-lg shadow-md max-w-3xl mt-8 mb-8">
-            <h1 className="text-3xl font-bold text-center text-gray-800 mb-6">Apply for Policy: {policy.name}</h1> {/* পলিসির নাম দেখান */}
+            <h1 className="text-3xl font-bold text-center text-gray-800 mb-6">Apply for Policy: {policy.policyTitle}</h1>
             <p className="text-center text-gray-600 mb-8">
-                Please provide your details to apply for the policy "{policy.name}" (Policy ID: {id}).
+                Please provide your details to apply for the policy "{policy.policyTitle}" <br /> (Policy ID: {id}).
             </p>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -87,8 +89,10 @@ const ApplicationFormPage = () => {
                     <label className="block text-gray-700 text-sm font-bold mb-2">Full Name</label>
                     <input
                         type="text"
+                        value={user.displayName}
                         {...register('fullName', { required: 'Full Name is required' })}
                         className="input input-bordered w-full"
+                        disabled
                     />
                     {errors.fullName && <p className="text-red-500 text-xs mt-1">{errors.fullName.message}</p>}
                 </div>
@@ -96,8 +100,10 @@ const ApplicationFormPage = () => {
                     <label className="block text-gray-700 text-sm font-bold mb-2">Email</label>
                     <input
                         type="email"
+                        value={user.email}
                         {...register('email', { required: 'Email is required', pattern: /^\S+@\S+$/i })}
                         className="input input-bordered w-full"
+                        disabled
                     />
                     {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>}
                 </div>

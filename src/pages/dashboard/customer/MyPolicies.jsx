@@ -141,6 +141,7 @@ const MyPolicies = () => {
       policyName: selectedPolicyForReview.policyName || 'N/A',
       reviewerName: user?.displayName || 'Anonymous',
       reviewerEmail: user?.email,
+      reviewerImage: user?.photoURL || 'https://i.ibb.co/VtWn3mS/user.png',
       rating: reviewData.rating,
       feedback: reviewData.feedback,
       submittedAt: new Date(),
