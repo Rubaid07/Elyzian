@@ -1,17 +1,18 @@
 import React, { useEffect, useState } from 'react';
-import useAuth from '../../../hooks/useAuth'; 
+import useAuth from '../../../hooks/useAuth';
 import useAxiosSecure from '../../../hooks/useAxiosSecure';
 import Spinner from '../../../component/Loader/Spinner';
 import toast from 'react-hot-toast';
 import Swal from 'sweetalert2';
 
-const AssignedCustomers = () => { 
+const AssignedCustomers = () => {
     const { user, loading: userLoading } = useAuth();
     const axiosSecure = useAxiosSecure();
-    const [assignedApplications, setAssignedApplications] = useState([]); 
+    const [assignedApplications, setAssignedApplications] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [selectedApplication, setSelectedApplication] = useState(null); 
+    const [selectedApplication, setSelectedApplication] = useState(null);
+    const [updatingStatusId, setUpdatingStatusId] = useState(null);
 
     useEffect(() => {
         if (userLoading) {
@@ -61,6 +62,7 @@ const AssignedCustomers = () => {
                         application.status === 'pending' ? '#3182ce' :
                         application.status === 'approved' ? '#38a169' :
                         application.status === 'rejected' ? '#e53e3e' :
+                        application.status === 'paid' ? '#6B46C1' :
                         '#718096'
                     };">${application.status || 'N/A'}</span></p>
                     <p><strong>Assigned Agent:</strong> ${application.assignedAgent || 'N/A'}</p>
@@ -85,6 +87,34 @@ const AssignedCustomers = () => {
 
     const handleEmailCustomer = (email) => {
         window.location.href = `mailto:${email}?subject=Regarding Your Policy Application&body=Dear Customer,`;
+    };
+
+    const handleStatusChange = async (appId, newStatus) => {
+        if (newStatus !== 'approved' && newStatus !== 'rejected') {
+            toast.error("Invalid status update.");
+            return;
+        }
+
+        setUpdatingStatusId(appId);
+        try {
+            const response = await axiosSecure.patch(`/applications/status/${appId}`, { status: newStatus });
+
+            if (response.data.modifiedCount > 0) {
+                toast.success(`Application ${newStatus} successfully!`);
+                setAssignedApplications(prevApps =>
+                    prevApps.map(app =>
+                        app._id === appId ? { ...app, status: newStatus } : app
+                    )
+                );
+            } else {
+                toast.error("Failed to update application status. No changes made.");
+            }
+        } catch (err) {
+            console.error("Error updating application status:", err);
+            toast.error(`Error ${newStatus} application.`);
+        } finally {
+            setUpdatingStatusId(null);
+        }
     };
 
     if (userLoading || loading) {
@@ -137,6 +167,7 @@ const AssignedCustomers = () => {
                                         app.status === 'pending' ? 'badge-info' :
                                         app.status === 'approved' ? 'badge-success' :
                                         app.status === 'rejected' ? 'badge-error' :
+                                        app.status === 'paid' ? 'badge-primary' : 
                                         'badge-neutral'
                                     }`}>
                                         {app.status}
@@ -149,12 +180,40 @@ const AssignedCustomers = () => {
                                     >
                                         Details
                                     </button>
-                                    <button
-                                        onClick={() => handleEmailCustomer(app.email)}
-                                        className="btn btn-sm btn-outline btn-primary" 
-                                    >
-                                        Email
-                                    </button>
+                                    {app.status === 'pending' && (
+                                        <>
+                                            <button
+                                                onClick={() => handleStatusChange(app._id, 'approved')}
+                                                className="btn btn-sm btn-success text-white"
+                                                disabled={updatingStatusId === app._id}
+                                            >
+                                                {updatingStatusId === app._id ? 'Approving...' : 'Approve'}
+                                            </button>
+                                            <button
+                                                onClick={() => handleStatusChange(app._id, 'rejected')}
+                                                className="btn btn-sm btn-error text-white"
+                                                disabled={updatingStatusId === app._id}
+                                            >
+                                                {updatingStatusId === app._id ? 'Rejecting...' : 'Reject'}
+                                            </button>
+                                        </>
+                                    )}
+                                    {(app.status === 'approved' || app.status === 'paid') && (
+                                        <button
+                                            onClick={() => handleEmailCustomer(app.email)}
+                                            className="btn btn-sm btn-outline btn-primary"
+                                        >
+                                            Email Customer
+                                        </button>
+                                    )}
+                                    {app.status === 'rejected' && (
+                                        <button
+                                            onClick={() => handleEmailCustomer(app.email)}
+                                            className="btn btn-sm btn-outline btn-secondary"
+                                        >
+                                            Email Customer
+                                        </button>
+                                    )}
                                 </td>
                             </tr>
                         ))}
