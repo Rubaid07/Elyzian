@@ -33,8 +33,9 @@ const ApplicationFormPage = () => {
             fetchPolicyDetails();
         }
     }, [id, axiosSecure, navigate]);
-
+    
     const onSubmit = async (data) => {
+        console.log(data);
         if (!policy) {
             toast.error('Policy details not loaded. Please try again.');
             return;
@@ -46,6 +47,7 @@ const ApplicationFormPage = () => {
                 policyName: policy.policyTitle,
                 applicantName: data.fullName,
                 email: data.email,
+                photo: data.photo,
                 address: data.address,
                 nidSsn: data.nidSsn,
                 nomineeName: data.nomineeName,
@@ -53,7 +55,6 @@ const ApplicationFormPage = () => {
                 hasPreExistingConditions: data.hasPreExistingConditions || false,
                 hasBeenHospitalized: data.hasBeenHospitalized || false,
                 consumesAlcohol: data.consumesAlcohol || false,
-
                 status: 'pending',
                 appliedAt: new Date(),
             };
