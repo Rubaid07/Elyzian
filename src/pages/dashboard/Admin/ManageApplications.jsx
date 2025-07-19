@@ -66,6 +66,7 @@ const ManageApplications = () => {
       }
     }
   };
+
   const handleAssignAgent = async (appId, agentEmail) => {
     if (!agentEmail) {
       Swal.fire('Warning', 'Please select an agent to assign.', 'warning');
@@ -88,6 +89,7 @@ const ManageApplications = () => {
       Swal.fire('Error', 'Failed to assign agent', 'error');
     }
   };
+
   if (loading) return <Spinner />;
 
   return (
@@ -128,7 +130,7 @@ const ManageApplications = () => {
                       </span>
                     </td>
                     <td>
-                      {app.status === 'pending' || !app.assignedAgent ? (
+                      {(app.status === 'pending' || !app.assignedAgent) && app.status !== 'rejected' ? (
                         <select
                           className="select select-sm select-bordered"
                           defaultValue={app.assignedAgent || ""} 
@@ -140,7 +142,7 @@ const ManageApplications = () => {
                           ))}
                         </select>
                       ) : (
-                        agents.find(agent => agent.email === app.assignedAgent)?.name || app.assignedAgent
+                        agents.find(agent => agent.email === app.assignedAgent)?.name || app.assignedAgent || 'N/A' // N/A যোগ করা হয়েছে যদি এজেন্ট না থাকে
                       )}
                     </td>
                     <td className="flex gap-2">

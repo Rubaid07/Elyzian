@@ -2,16 +2,10 @@ import React, { useContext, useEffect, useState } from 'react';
 import useAxiosSecure from '../../hooks/useAxiosSecure';
 import { AuthContext } from '../../context/AuthContext';
 import Spinner from '../../component/Loader/Spinner';
-import toast from 'react-hot-toast';
+import { FaUsers, FaFileContract, FaHandHoldingMedical, FaDollarSign, FaUserTie, FaBlog, FaFileAlt, FaUmbrellaBeach, FaCreditCard, FaExclamationTriangle, FaFileSignature, FaMoneyBillWave } from 'react-icons/fa';
 import {
-    LineChart,
-    Line,
-    XAxis,
-    YAxis,
-    CartesianGrid,
-    Tooltip,
-    ResponsiveContainer,
-    Legend
+    BarChart, PieChart, LineChart, Bar, Pie, Line, XAxis, YAxis, CartesianGrid,
+    Tooltip, Legend, ResponsiveContainer, Cell
 } from 'recharts';
 
 const DashboardOverview = () => {
@@ -22,45 +16,32 @@ const DashboardOverview = () => {
     const [error, setError] = useState(null);
     const axiosSecure = useAxiosSecure();
 
-    // Helper function to determine if a transaction status is considered 'success'
     const isSuccessStatus = (status) => {
         return ['completed', 'paid', 'success', 'succeeded'].includes(status?.toLowerCase());
     };
-
     useEffect(() => {
         const fetchDashboardData = async () => {
             if (!user?.email || userLoading) {
                 setLoadingDashboard(false);
                 return;
             }
-
             setLoadingDashboard(true);
             setError(null);
-
             try {
-                // Fetch user role and dashboard overview data in parallel
-                const [roleRes, dashboardRes] = await Promise.all([
-                    axiosSecure.get(`/users/${user.email}`),
-                    axiosSecure.get(`/dashboard-overview?email=${user.email}`)
-                ]);
-
-                setRole(roleRes.data?.role || 'customer');
+                const dashboardRes = await axiosSecure.get(`/dashboard-overview?email=${user.email}`);
                 setDashboardData(dashboardRes.data);
-
-                // If admin, fetch transactions for the chart
-                if (roleRes.data?.role === 'admin') {
+                setRole(dashboardRes.data?.role || 'customer');
+                if (dashboardRes.data?.role === 'admin') {
                     const transactionsRes = await axiosSecure.get('/admin/transactions');
-                    const fetchedTransactions = transactionsRes.data || [];
                     setDashboardData(prevData => ({
                         ...prevData,
-                        transactions: fetchedTransactions
+                        transactions: transactionsRes.data || [] 
                     }));
                 }
 
             } catch (err) {
                 console.error('Dashboard Data Fetch Error:', err);
                 setError("Failed to load dashboard data. Please try again.");
-                toast.error("Failed to load dashboard data.");
             } finally {
                 setLoadingDashboard(false);
             }
@@ -68,43 +49,250 @@ const DashboardOverview = () => {
 
         fetchDashboardData();
     }, [user, userLoading, axiosSecure]);
+    const getChartData = () => {
+        if (!dashboardData) return [];
+        if (role === 'admin') {
+            const monthlyEarnings = dashboardData.transactions?.reduce((acc, tx) => {
+                if (isSuccessStatus(tx.status)) {
+                    const date = new Date(tx.paymentDate);
+                    const monthYear = `${date.getFullYear()}-${date.getMonth() + 1}`;
+                    acc[monthYear] = (acc[monthYear] || 0) + (tx.premiumAmount || 0);
+                }
+                return acc;
+            }, {});
+            const sortedMonthlyEarnings = Object.keys(monthlyEarnings || {})
+                .sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
+                .map(key => ({
+                    name: new Date(key).toLocaleString('default', { month: 'short', year: '2-digit' }),
+                    earnings: monthlyEarnings[key]
+                }));
 
-    // Graph/Chart Data Preparation for Admin Earnings
-    const getEarningsOverTimeData = () => {
-        if (role !== 'admin' || !dashboardData?.transactions) return [];
+            const appStatusData = dashboardData.recentApplications?.reduce((acc, app) => {
+                acc[app.status] = (acc[app.status] || 0) + 1;
+                return acc;
+            }, { pending: 0, approved: 0, rejected: 0 });
 
-        const dailyEarnings = dashboardData.transactions.reduce((acc, tx) => {
-            if (isSuccessStatus(tx.status) && tx.paymentDate && tx.premiumAmount) {
-                const date = new Date(tx.paymentDate).toISOString().split('T')[0];
-                acc[date] = (acc[date] || 0) + tx.premiumAmount;
-            }
-            return acc;
-        }, {});
+            return [
+                {
+                    title: "Monthly Earnings (BDT)",
+                    type: "line",
+                    data: sortedMonthlyEarnings,
+                    dataKey: "earnings"
+                },
+                {
+                    title: "Application Status Distribution",
+                    type: "pie",
+                    data: Object.keys(appStatusData || {}).map(status => ({
+                        name: status,
+                        value: appStatusData[status],
+                        color: status === 'approved' ? '#10B981' :
+                            status === 'pending' ? '#3B82F6' : '#EF4444'
+                    })).filter(entry => entry.value > 0) 
+                }
+            ];
+        }
 
-        const chartData = Object.keys(dailyEarnings).map(date => ({
-            date: date,
-            earnings: dailyEarnings[date]
-        }));
+        if (role === 'agent') {
+            const assignedAppStatus = dashboardData.recentAssignedApplications?.reduce((acc, app) => {
+                acc[app.status] = (acc[app.status] || 0) + 1;
+                return acc;
+            }, { pending: 0, approved: 0, rejected: 0 });
+            const customersByPolicy = dashboardData.recentAssignedApplications?.reduce((acc, app) => {
+                const policy = app.policyName || 'Unknown';
+                acc[policy] = (acc[policy] || 0) + 1;
+                return acc;
+            }, {});
+            const sortedCustomersByPolicy = Object.keys(customersByPolicy || {})
+                .map(policy => ({
+                    name: policy.length > 15 ? `${policy.substring(0, 15)}...` : policy,
+                    value: customersByPolicy[policy]
+                }))
+                .sort((a, b) => b.value - a.value); 
 
-        chartData.sort((a, b) => new Date(a.date) - new Date(b.date));
-        return chartData;
+            return [
+                {
+                    title: "Assigned Applications Status",
+                    type: "pie",
+                    data: Object.keys(assignedAppStatus || {}).map(status => ({
+                        name: status,
+                        value: assignedAppStatus[status],
+                        color: status === 'approved' ? '#10B981' :
+                            status === 'pending' ? '#3B82F6' : '#EF4444'
+                    })).filter(entry => entry.value > 0)
+                },
+                {
+                    title: "Customers Assigned By Policy Type",
+                    type: "bar",
+                    data: sortedCustomersByPolicy,
+                    dataKey: "value"
+                }
+            ];
+        }
+
+        if (role === 'customer') {
+            const paymentData = dashboardData.recentPaidPolicies?.map(policy => ({
+                name: policy.policyName?.split(' ')[0] || 'Policy',
+                amount: policy.premiumAmount || 0,
+                date: new Date(policy.paymentDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+            }));
+
+            const policyTypes = dashboardData.recentApplications?.reduce((acc, app) => {
+                const type = app.policyName?.includes('Health') ? 'Health' :
+                    app.policyName?.includes('Life') ? 'Life' :
+                    app.policyName?.includes('Car') ? 'Car' : 'Other';
+                acc[type] = (acc[type] || 0) + 1;
+                return acc;
+            }, { Health: 0, Life: 0, Car: 0, Other: 0 }); 
+
+            return [
+                {
+                    title: "Your Recent Payments (BDT)",
+                    type: "bar",
+                    data: paymentData || [],
+                    dataKey: "amount",
+                    xAxisKey: "name" 
+                },
+                {
+                    title: "Applied Policy Types Distribution",
+                    type: "pie",
+                    data: Object.keys(policyTypes || {}).map(type => ({
+                        name: type,
+                        value: policyTypes[type],
+                        color: type === 'Health' ? '#3B82F6' :
+                            type === 'Life' ? '#6366F1' :
+                            type === 'Car' ? '#10B981' : '#EF4444'
+                    })).filter(entry => entry.value > 0)
+                }
+            ];
+        }
+
+        return [];
     };
 
-    const earningsChartData = getEarningsOverTimeData();
+    const renderChart = (chart) => {
+        if (!chart.data || chart.data.length === 0) {
+            return (
+                <div className="bg-gray-50 p-4 rounded-lg text-center text-gray-500 min-h-[300px] flex items-center justify-center">
+                    No data available for this chart
+                </div>
+            );
+        }
 
+        switch (chart.type) {
+            case 'line':
+                return (
+                    <ResponsiveContainer width="100%" height={300}>
+                        <LineChart data={chart.data}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+                            <XAxis dataKey={chart.dataKey === "earnings" ? "name" : chart.xAxisKey} stroke="#555" />
+                            <YAxis stroke="#555" />
+                            <Tooltip formatter={(value) => [`BDT ${value.toFixed(2)}`, chart.title.split('(')[0]]} />
+                            <Legend wrapperStyle={{ paddingTop: '10px' }} />
+                            <Line
+                                type="monotone"
+                                dataKey={chart.dataKey}
+                                stroke="#8884d8"
+                                activeDot={{ r: 8 }}
+                                strokeWidth={2}
+                            />
+                        </LineChart>
+                    </ResponsiveContainer>
+                );
+
+            case 'bar':
+                return (
+                    <ResponsiveContainer width="100%" height={300}>
+                        <BarChart data={chart.data}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+                            <XAxis dataKey={chart.xAxisKey || "name"} angle={-30} textAnchor="end" height={60} stroke="#555" />
+                            <YAxis stroke="#555" />
+                            <Tooltip formatter={(value, name) => {
+                                if (name === "Amount (BDT)") return [`BDT ${value.toFixed(2)}`, name];
+                                return [value, name];
+                            }} />
+                            <Legend wrapperStyle={{ paddingTop: '10px' }} />
+                            <Bar dataKey={chart.dataKey} fill="#82ca9d" name={chart.dataKey === "amount" ? "Amount (BDT)" : "Count"} barSize={30} />
+                        </BarChart>
+                    </ResponsiveContainer>
+                );
+
+            case 'pie':
+                return (
+                    <ResponsiveContainer width="100%" height={300}>
+                        <PieChart>
+                            <Pie
+                                data={chart.data}
+                                cx="50%"
+                                cy="50%"
+                                labelLine={false}
+                                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                                outerRadius={100}
+                                dataKey="value"
+                            >
+                                {chart.data.map((entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={entry.color} />
+                                ))}
+                            </Pie>
+                            <Tooltip formatter={(value) => [value, "Count"]} />
+                            <Legend wrapperStyle={{ paddingTop: '10px' }} />
+                        </PieChart>
+                    </ResponsiveContainer>
+                );
+
+            default:
+                return null;
+        }
+    };
+    const getIconComponent = (title) => {
+        switch (title) {
+            case 'Total Users': return <FaUsers />;
+            case 'Total Policies': return <FaFileContract />;
+            case 'Total Applications': return <FaFileSignature />;
+            case 'Total Claims': return <FaHandHoldingMedical />;
+            case 'Total Income': return <FaDollarSign />;
+            case 'Assigned Customers': return <FaUserTie />;
+            case 'Your Blogs': return <FaBlog />;
+            case 'Assigned Applications': return <FaFileAlt />;
+            case 'My Policies': return <FaUmbrellaBeach />;
+            case 'Total Payments Made': return <FaCreditCard />;
+            case 'Total Amount Paid': return <FaMoneyBillWave />;
+            case 'Claim Requests': return <FaExclamationTriangle />;
+            default: return <FaDollarSign />;
+        }
+    };
+    const getIconColorClass = (title) => {
+        switch (title) {
+            case 'Total Users': return 'text-blue-500';
+            case 'Total Policies': return 'text-green-500';
+            case 'Total Applications': return 'text-purple-500';
+            case 'Total Claims': return 'text-red-500';
+            case 'Total Income': return 'text-yellow-500';
+            case 'Assigned Customers': return 'text-indigo-500';
+            case 'Your Blogs': return 'text-orange-500';
+            case 'Assigned Applications': return 'text-teal-500';
+            case 'My Policies': return 'text-blue-600';
+            case 'Total Payments Made': return 'text-green-600';
+            case 'Total Amount Paid': return 'text-purple-600';
+            case 'Claim Requests': return 'text-red-600';
+            default: return 'text-gray-500';
+        }
+    };
     if (userLoading || loadingDashboard) {
         return <Spinner />;
     }
-
     if (error) {
         return (
             <div className="text-center text-red-600 p-8 bg-white rounded-lg shadow-md max-w-md mx-auto mt-10">
                 <p className="text-lg mb-4">{error}</p>
+                <button
+                    onClick={() => window.location.reload()}
+                    className="mt-4 px-6 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 transition-colors"
+                >
+                    Retry
+                </button>
             </div>
         );
     }
-
-    // Fallback if data is null after loading (shouldn't happen with proper error handling)
     if (!dashboardData || !role) {
         return (
             <div className="text-center text-gray-600 p-8 bg-white rounded-lg shadow-md max-w-lg mx-auto mt-10">
@@ -115,80 +303,108 @@ const DashboardOverview = () => {
     }
 
     return (
-        <div className="container mx-auto p-6 space-y-8">
-            <h2 className="text-4xl font-extrabold text-gray-900 text-center mb-10">
-                Welcome, <span className="text-sky-700">{user?.displayName?.split(' ')[0] || 'User'}</span>!
+        <div className="container mx-auto p-6 space-y-8 min-h-screen bg-gray-50">
+            <h2 className="text-4xl font-extrabold text-gray-900 text-center mb-10 pt-4">
+                Welcome, <span className="text-sky-700">{user?.displayName?.split(' ')[0] || 'User'}!</span> 👋
             </h2>
-
-            {/* Overview Cards */}
-            <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {dashboardData.cards.map((card, idx) => (
-                    <div key={idx} className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 transform hover:scale-105 transition-transform duration-300 ease-in-out">
-                        <p className="text-gray-600 text-base font-medium mb-2">{card.title}</p>
-                        <h3 className="text-4xl font-extrabold text-sky-800">{card.value}</h3>
+                    <div key={idx} className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100 flex items-start space-x-4">
+                        <div className={`p-3 rounded-full ${getIconColorClass(card.title).replace('text-', 'bg-')} bg-opacity-10`}>
+                            <span className={`text-3xl ${getIconColorClass(card.title)}`}>
+                                {getIconComponent(card.title)}
+                            </span>
+                        </div>
+                        <div className="flex-grow">
+                            <p className="text-gray-600 text-sm font-medium">{card.title}</p>
+                            <h3 className="text-3xl font-extrabold text-gray-900">{card.value}</h3>
+                            {card.growth && (
+                                <p className="text-xs text-gray-500 mt-1">
+                                    <span className={`${card.growth.includes('+') ? 'text-green-500' : 'text-red-500'} font-semibold`}>
+                                        {card.growth.split(' ')[0]}
+                                    </span>{" "}
+                                    <span className="text-gray-500">{card.growth.substring(card.growth.indexOf(' ') + 1)}</span>
+                                </p>
+                            )}
+                        </div>
                     </div>
                 ))}
             </section>
-
-            {/* Admin Specific: Total Earnings Over Time Graph */}
-            {role === 'admin' && (
-                <section className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-                    <h3 className="text-2xl font-bold text-gray-800 mb-6 text-center">Total Earnings Over Time 📈</h3>
-                    {earningsChartData.length > 0 ? (
-                        <div style={{ width: '100%', height: 400 }}>
-                            <ResponsiveContainer>
-                                <LineChart
-                                    data={earningsChartData}
-                                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                                >
-                                    <CartesianGrid strokeDasharray="3 3" />
-                                    <XAxis dataKey="date" />
-                                    <YAxis />
-                                    <Tooltip formatter={(value) => `BDT ${value.toFixed(2)}`} />
-                                    <Legend />
-                                    <Line type="monotone" dataKey="earnings" stroke="#38b2ac" activeDot={{ r: 8 }} name="Earnings" />
-                                </LineChart>
-                            </ResponsiveContainer>
+            <hr className="my-8 border-gray-300" />
+            {getChartData().length > 0 && (
+                <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {getChartData().map((chart, index) => (
+                        <div key={index} className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
+                            <h3 className="text-xl font-bold text-gray-800 mb-4 text-center">{chart.title}</h3>
+                            {renderChart(chart)}
                         </div>
-                    ) : (
-                        <div className="text-center text-gray-500 p-4 bg-gray-50 rounded-lg">
-                            No earnings data available for the chart.
-                        </div>
-                    )}
+                    ))}
                 </section>
             )}
-
-            {/* Recent Activities Section */}
-            <section className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-                <h3 className="text-2xl font-bold text-gray-800 mb-6 text-center">Recent Activities</h3>
-
-                {role === 'admin' && dashboardData?.recentApplications && dashboardData.recentApplications.length > 0 && (
+            <hr className="my-8 border-gray-300" />
+            <section className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
+                <h3 className="text-2xl font-bold text-gray-800 mb-6 text-center">Recent Activities 📊</h3>
+                {role === 'admin' && dashboardData?.recentTransactions?.length > 0 && (
                     <div className="mb-8">
-                        <h4 className="text-xl font-semibold text-gray-700 mb-4">Latest Applications</h4>
+                        <h4 className="text-xl font-semibold text-gray-700 mb-4">Latest Transactions</h4>
                         <div className="overflow-x-auto">
-                            <table className="table w-full">
-                                <thead>
+                            <table className="min-w-full divide-y divide-gray-200">
+                                <thead className="bg-gray-100">
                                     <tr>
-                                        <th>Applicant Name</th>
-                                        <th>Policy Name</th>
-                                        <th>Applied Date</th>
-                                        <th>Status</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Transaction ID</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User Email</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    {dashboardData.recentApplications.slice(0, 5).map((app, i) => ( // Show top 5
-                                        <tr key={i}>
-                                            <td>{app.applicantName || 'N/A'}</td>
-                                            <td>{app.policyName || 'N/A'}</td>
-                                            <td>{new Date(app.appliedAt).toLocaleDateString()}</td>
-                                            <td>
-                                                <span className={`badge ${
-                                                    app.status === 'pending' ? 'badge-info' :
-                                                    app.status === 'approved' ? 'badge-success' :
-                                                    app.status === 'rejected' ? 'badge-error' :
-                                                    app.status === 'paid' ? 'badge-primary' :
-                                                    'badge-neutral'
-                                                }`}>
+                                <tbody className="bg-white divide-y divide-gray-200">
+                                    {dashboardData.recentTransactions.map((tx, i) => (
+                                        <tr key={i} className="hover:bg-gray-50">
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{tx.transactionId}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tx.email}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">BDT {tx.premiumAmount?.toFixed(2)}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                {new Date(tx.paymentDate).toLocaleDateString()}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${isSuccessStatus(tx.status) ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                                                    }`}>
+                                                    {tx.status}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
+                {role === 'admin' && dashboardData?.recentApplications?.length > 0 && (
+                    <div className="mb-8">
+                        <h4 className="text-xl font-semibold text-gray-700 mb-4">Latest Policy Applications (Admin)</h4>
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full divide-y divide-gray-200">
+                                <thead className="bg-gray-100">
+                                    <tr>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Applicant Name</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Policy Name</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Applied Date</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="bg-white divide-y divide-gray-200">
+                                    {dashboardData.recentApplications.map((app, i) => (
+                                        <tr key={i} className="hover:bg-gray-50">
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{app.fullName || app.applicantName || 'N/A'}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{app.policyName || 'N/A'}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{new Date(app.appliedAt).toLocaleDateString()}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${app.status === 'pending' ? 'bg-blue-100 text-blue-800' :
+                                                    app.status === 'approved' ? 'bg-green-100 text-green-800' :
+                                                        app.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                                                            'bg-gray-100 text-gray-800'
+                                                    }`}>
                                                     {app.status}
                                                 </span>
                                             </td>
@@ -199,23 +415,24 @@ const DashboardOverview = () => {
                         </div>
                     </div>
                 )}
-
-                {role === 'agent' && dashboardData?.recentBlogs && dashboardData.recentBlogs.length > 0 && (
+                {role === 'agent' && dashboardData?.recentBlogs?.length > 0 && (
                     <div className="mb-8">
                         <h4 className="text-xl font-semibold text-gray-700 mb-4">Your Latest Blogs</h4>
                         <div className="overflow-x-auto">
-                            <table className="table w-full">
-                                <thead>
+                            <table className="min-w-full divide-y divide-gray-200">
+                                <thead className="bg-gray-100">
                                     <tr>
-                                        <th>Blog Title</th>
-                                        <th>Created At</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Blog Title</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created By</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created At</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    {dashboardData.recentBlogs.slice(0, 5).map((blog, i) => ( // Show top 5
-                                        <tr key={i}>
-                                            <td>{blog.title}</td>
-                                            <td>{new Date(blog.createdAt).toLocaleDateString()}</td>
+                                <tbody className="bg-white divide-y divide-gray-200">
+                                    {dashboardData.recentBlogs.map((blog, i) => (
+                                        <tr key={i} className="hover:bg-gray-50">
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{blog.title}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{blog.createdBy}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{new Date(blog.createdAt).toLocaleDateString()}</td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -223,33 +440,57 @@ const DashboardOverview = () => {
                         </div>
                     </div>
                 )}
-
-                {role === 'customer' && dashboardData?.myPolicies && dashboardData.myPolicies.length > 0 && (
+                {role === 'agent' && dashboardData?.recentAssignedCustomers?.length > 0 && (
                     <div className="mb-8">
-                        <h4 className="text-xl font-semibold text-gray-700 mb-4">Your Active Policies</h4>
+                        <h4 className="text-xl font-semibold text-gray-700 mb-4">Recently Assigned Customers</h4>
                         <div className="overflow-x-auto">
-                            <table className="table w-full">
-                                <thead>
+                            <table className="min-w-full divide-y divide-gray-200">
+                                <thead className="bg-gray-100">
                                     <tr>
-                                        <th>Policy Name</th>
-                                        <th>Premium Amount</th>
-                                        <th>Frequency</th>
-                                        <th>Status</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer Name</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assigned At</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    {dashboardData.myPolicies.slice(0, 5).map((policy, i) => ( // Show top 5
-                                        <tr key={i}>
-                                            <td>{policy.policyName}</td>
-                                            <td>BDT {policy.premiumAmount?.toFixed(2) || 'N/A'}</td>
-                                            <td>{policy.paymentFrequency || 'N/A'}</td>
-                                            <td>
-                                                <span className={`badge ${
-                                                    policy.status === 'active' ? 'badge-success' :
-                                                    policy.status === 'inactive' ? 'badge-error' :
-                                                    'badge-neutral'
-                                                }`}>
-                                                    {policy.status}
+                                <tbody className="bg-white divide-y divide-gray-200">
+                                    {dashboardData.recentAssignedCustomers.map((customer, i) => (
+                                        <tr key={i} className="hover:bg-gray-50">
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{customer.name || 'N/A'}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{customer.email || 'N/A'}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{new Date(customer.assignedAt).toLocaleDateString()}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
+                {role === 'agent' && dashboardData?.recentAssignedApplications?.length > 0 && (
+                    <div className="mb-8">
+                        <h4 className="text-xl font-semibold text-gray-700 mb-4">Your Recent Assigned Applications</h4>
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full divide-y divide-gray-200">
+                                <thead className="bg-gray-100">
+                                    <tr>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Applicant Name</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Policy Name</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Applied Date</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="bg-white divide-y divide-gray-200">
+                                    {dashboardData.recentAssignedApplications.map((app, i) => (
+                                        <tr key={i} className="hover:bg-gray-50">
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{app.fullName || app.applicantName || 'N/A'}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{app.policyName || 'N/A'}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{new Date(app.appliedAt).toLocaleDateString()}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${app.status === 'pending' ? 'bg-blue-100 text-blue-800' :
+                                                    app.status === 'approved' ? 'bg-green-100 text-green-800' :
+                                                        app.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                                                            'bg-gray-100 text-gray-800'
+                                                    }`}>
+                                                    {app.status}
                                                 </span>
                                             </td>
                                         </tr>
@@ -259,13 +500,120 @@ const DashboardOverview = () => {
                         </div>
                     </div>
                 )}
-
-                {/* If no recent activity data */}
-                {(!dashboardData?.recentApplications || dashboardData.recentApplications.length === 0) &&
-                 (!dashboardData?.recentBlogs || dashboardData.recentBlogs.length === 0) &&
-                 (!dashboardData?.myPolicies || dashboardData.myPolicies.length === 0) && (
+                {role === 'customer' && dashboardData?.recentApplications?.length > 0 && (
+                    <div className="mb-8">
+                        <h4 className="text-xl font-semibold text-gray-700 mb-4">Your Recent Policy Applications</h4>
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full divide-y divide-gray-200">
+                                <thead className="bg-gray-100">
+                                    <tr>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Policy Name</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Applied Date</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="bg-white divide-y divide-gray-200">
+                                    {dashboardData.recentApplications.map((app, i) => (
+                                        <tr key={i} className="hover:bg-gray-50">
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{app.policyName || 'N/A'}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{new Date(app.appliedAt).toLocaleDateString()}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${app.status === 'pending' ? 'bg-blue-100 text-blue-800' :
+                                                    app.status === 'approved' ? 'bg-green-100 text-green-800' :
+                                                        app.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                                                            'bg-gray-100 text-gray-800'
+                                                    }`}>
+                                                    {app.status}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
+                {role === 'customer' && dashboardData?.recentPaidPolicies?.length > 0 && (
+                    <div className="mb-8">
+                        <h4 className="text-xl font-semibold text-gray-700 mb-4">Your Recent Paid Policies</h4>
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full divide-y divide-gray-200">
+                                <thead className="bg-gray-100">
+                                    <tr>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Policy Name</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Premium Amount</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment Date</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="bg-white divide-y divide-gray-200">
+                                    {dashboardData.recentPaidPolicies.map((policy, i) => (
+                                        <tr key={i} className="hover:bg-gray-50">
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{policy.policyName || 'N/A'}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">BDT {policy.premiumAmount?.toFixed(2) || '0.00'}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{new Date(policy.paymentDate).toLocaleDateString()}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${isSuccessStatus(policy.status) ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                                                    }`}>
+                                                    {policy.status || 'N/A'}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
+                {dashboardData?.recentPolicies?.length > 0 && (
+                    <div className="mt-8">
+                        <h4 className="text-xl font-semibold text-gray-700 mb-4">Recently Added Policies (All Users)</h4>
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full divide-y divide-gray-200">
+                                <thead className="bg-gray-100">
+                                    <tr>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Policy Title</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Added On</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="bg-white divide-y divide-gray-200">
+                                    {dashboardData.recentPolicies.map((policy, i) => (
+                                        <tr key={i} className="hover:bg-gray-50">
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{policy.policyTitle || 'N/A'}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{policy.category || 'N/A'}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{new Date(policy.createdAt).toLocaleDateString()}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
+                {dashboardData?.recentBlogs?.length > 0 && (
+                    <div className="mt-8">
+                        <h4 className="text-xl font-semibold text-gray-700 mb-4">Latest Blogs (All Users)</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {dashboardData.recentBlogs.map((blog, i) => (
+                                <div key={i} className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                                    <div className="p-6">
+                                        <h5 className="text-lg font-semibold text-gray-900 mb-2">{blog.title}</h5>
+                                        <p className="text-sm text-gray-500 mb-4">
+                                            By {blog.createdBy} • {new Date(blog.createdAt).toLocaleDateString()}
+                                        </p>
+                                        <p className="text-gray-600 line-clamp-3">{blog.content || 'No content available'}</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+                {((role === 'admin' && !(dashboardData?.recentTransactions?.length > 0) && !(dashboardData?.recentApplications?.length > 0)) ||
+                 (role === 'agent' && !(dashboardData?.recentBlogs?.length > 0) && !(dashboardData?.recentAssignedCustomers?.length > 0) && !(dashboardData?.recentAssignedApplications?.length > 0)) ||
+                 (role === 'customer' && !(dashboardData?.recentApplications?.length > 0) && !(dashboardData?.recentPaidPolicies?.length > 0))) &&
+                 (!(dashboardData?.recentPolicies?.length > 0) && !(dashboardData?.recentBlogs?.length > 0)) && (
                     <div className="text-center text-gray-500 p-4 bg-gray-50 rounded-lg">
-                        No recent activity to display.
+                        No specific recent activity to display for your role. Please check general activities below.
                     </div>
                 )}
             </section>

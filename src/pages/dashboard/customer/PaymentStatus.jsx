@@ -83,7 +83,7 @@ const PaymentStatus = () => {
                 <td>{transaction.policyName || 'N/A'}</td>
                 <td>
                   {transaction.premiumAmount
-                    ? `৳ ${transaction.premiumAmount.toLocaleString()}`
+                    ? `BDT ${transaction.premiumAmount.toLocaleString()}`
                     : 'N/A'}
                 </td>
                 <td>{transaction.paymentFrequency || 'N/A'}</td>
