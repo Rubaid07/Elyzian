@@ -52,6 +52,7 @@ const DashboardLayout = () => {
       { label: 'Manage Applications', to: '/dashboard/manage-applications', icon: <FaList className="text-lg" /> },
       { label: 'Transactions', to: '/dashboard/transactions', icon: <FaWallet className="text-lg" /> },
       { label: 'Manage Agents', to: '/dashboard/manage-agents', icon: <FaUserShield className="text-lg" /> },
+      { label: 'Manage Claims', to: '/dashboard/manage-claims', icon: <FaHandsHelping className="text-lg" /> },
     ] : role === 'agent' ? [
       { label: 'Assigned Customers', to: '/dashboard/assigned-customers', icon: <FaUserFriends className="text-lg" /> },
       { label: 'Manage Blogs', to: '/dashboard/manage-blogs', icon: <FaBlogger className="text-lg" /> },

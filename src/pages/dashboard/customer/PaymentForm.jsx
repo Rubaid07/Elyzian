@@ -1,151 +1,138 @@
 import { CardElement, useElements, useStripe } from '@stripe/react-stripe-js';
 import React, { useState, useEffect, useContext } from 'react';
-import { useNavigate } from 'react-router'; 
+import { useLocation, useNavigate, useParams } from 'react-router';
 import useAxiosSecure from '../../../hooks/useAxiosSecure';
 import { AuthContext } from '../../../context/AuthContext';
 import toast from 'react-hot-toast';
-import Spinner from '../../../component/Loader/Spinner';
-
-const PaymentForm = ({ policyData }) => {
+import Swal from 'sweetalert2';
+const PaymentForm = () => { 
     const stripe = useStripe();
     const elements = useElements();
     const { user } = useContext(AuthContext);
     const axiosSecure = useAxiosSecure(); 
     const navigate = useNavigate(); 
-
-   
+    const location = useLocation();
+    const { id: urlApplicationId } = useParams();
+    const statePolicyData = location.state; 
     const [error, setError] = useState(null);
     const [clientSecret, setClientSecret] = useState('');
-    const [processing, setProcessing] = useState(false);
     const [transactionId, setTransactionId] = useState('');
-
-    const premiumAmountInBDT = policyData?.premiumAmount; 
-    const amountForStripe = parseFloat(premiumAmountInBDT); 
+    const premiumAmount = statePolicyData?.premiumAmount || 0;
+    const amountForStripe = parseFloat(premiumAmount);
 
     useEffect(() => {
-        if (amountForStripe > 0 && !clientSecret) {
-            setProcessing(true);
+        if (amountForStripe > 0) {
             axiosSecure.post('/create-payment-intent', { price: amountForStripe })
                 .then(res => {
+                    console.log(res.data.clientSecret);
                     setClientSecret(res.data.clientSecret);
-                    setProcessing(false);
                 })
                 .catch(err => {
                     console.error("Error creating payment intent:", err);
                     setError("Failed to initialize payment. Please try again.");
-                    toast.error("Payment initialization failed.");
-                    setProcessing(false);
                 });
         }
-    }, [amountForStripe, axiosSecure, clientSecret]);
+    }, [axiosSecure, amountForStripe]);
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setProcessing(true);
+    const handleSubmit = async (event) => {
+        event.preventDefault();
 
-        if (!stripe || !elements || !clientSecret) {
-            setProcessing(false);
+        if (!stripe || !elements) {
             return;
         }
 
         const card = elements.getElement(CardElement);
+
         if (card === null) {
-            setProcessing(false);
             return;
         }
 
-        // 1. Create Payment Method
-        const { error: pmError, paymentMethod } = await stripe.createPaymentMethod({
+        const { error, paymentMethod } = await stripe.createPaymentMethod({
             type: 'card',
             card,
-            billing_details: {
-                email: user?.email || 'anonymous@example.com',
-                name: user?.displayName || 'Anonymous User',
+        });
+
+        if (error) {
+            console.log('Payment method error', error);
+            setError(error.message);
+        } else {
+            console.log('Payment method', paymentMethod);
+            setError('');
+        }
+        const { paymentIntent, error: confirmError } = await stripe.confirmCardPayment(clientSecret, {
+            payment_method: {
+                card: card,
+                billing_details: {
+                    email: user?.email || 'anonymous',
+                    name: user?.displayName || 'anonymous',
+                },
             },
         });
 
-        if (pmError) {
-            console.log('[error]', pmError);
-            setError(pmError.message);
-            toast.error(pmError.message);
-            setProcessing(false);
-            return;
-        } else {
-            console.log('[PaymentMethod]', paymentMethod);
-            setError(null);
-        }
-
-        // 2. Confirm Card Payment
-        const { paymentIntent, error: confirmError } = await stripe.confirmCardPayment(
-            clientSecret,
-            {
-                payment_method: {
-                    card: card,
-                    billing_details: {
-                        email: user?.email || 'anonymous@example.com',
-                        name: user?.displayName || 'Anonymous User',
-                    },
-                },
-            }
-        );
-
         if (confirmError) {
-            console.log('[confirmError]', confirmError);
+            console.log('Confirm error', confirmError);
             setError(confirmError.message);
-            toast.error(confirmError.message);
-            setProcessing(false);
-            return;
-        }
-
-        console.log('Payment Intent:', paymentIntent);
-
-        if (paymentIntent.status === 'succeeded') {
-            setTransactionId(paymentIntent.id);
-            toast.success('Payment Successful!');
-
-            const payment = {
-                email: user?.email,
-                transactionId: paymentIntent.id,
-                premiumAmount: amountForStripe,
-                policyId: policyData.policyId,
-                policyName: policyData.policyName,
-                paymentFrequency: policyData.paymentFrequency,
-                paymentDate: new Date(),
-                status: 'Paid'
-            };
-
-            try {
-                const res = await axiosSecure.post('/payments', payment);
-                console.log('Payment saved to DB:', res.data);
-
-                if (res.data.result?.insertedId) {
-                    await axiosSecure.patch(`/applications/status/${policyData.policyId}`, { status: 'Paid' });
-                    toast.success('Policy status updated to Paid!');
-                }
-            } catch (dbError) {
-                console.error("Error saving payment to DB or updating policy status:", dbError);
-                toast.error("Payment successful, but failed to record in database.");
-            }
-
-            setProcessing(false);
-            navigate('/dashboard/payment-status', { replace: true });
+            Swal.fire({
+                icon: 'error',
+                title: 'Payment Failed!',
+                text: confirmError.message || 'There was an issue processing your payment.',
+            });
         } else {
-            setError(`Payment failed: ${paymentIntent.status}`);
-            toast.error(`Payment failed: ${paymentIntent.status}`);
-            setProcessing(false);
+            console.log('Payment Intent', paymentIntent);
+            if (paymentIntent.status === 'succeeded') {
+                console.log('Transaction Id', paymentIntent.id);
+                setTransactionId(paymentIntent.id);
+                const payment = {
+                    email: user?.email,
+                    transactionId: paymentIntent.id,
+                    premiumAmount: amountForStripe,
+                    applicationId: urlApplicationId, 
+                    policyId: statePolicyData.policyId,
+                    policyName: statePolicyData.policyName,
+                    paymentFrequency: statePolicyData.paymentFrequency, 
+                    paymentDate: new Date(),
+                    status: 'Paid',
+                };
+                console.log('Payment data being sent:', payment);
+                try {
+                    const res = await axiosSecure.post('/payments', payment);
+                    console.log('Payment saved to DB and application status updated:', res.data);
+                    if (res.data.transactionResult?.insertedId && res.data.applicationUpdateResult?.matchedCount > 0) {
+                        Swal.fire({
+                            position: "top-end",
+                            icon: "success",
+                            title: "Payment Successful!",
+                            showConfirmButton: false,
+                            timer: 1500
+                        });
+                        toast.success('Policy status updated to Paid!');
+                        navigate('/dashboard/payment-status');
+                    } else {
+                         Swal.fire({
+                            icon: 'warning',
+                            title: 'Payment Saved, But Status Not Fully Updated',
+                            text: res.data.message || 'There was an issue updating the policy status. Please check dashboard.',
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error saving payment to DB or updating policy status:', error);
+                    toast.error('Payment failed or status update error!');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Payment Processing Error!',
+                        text: error.response?.data?.message || 'An unexpected error occurred while saving payment or updating status.',
+                    });
+                }
+            }
         }
-    }
-
+    };
     return (
-        <form onSubmit={handleSubmit} className="card-body">
-            <h3 className="text-xl font-bold mb-4">Pay for: {policyData?.policyName || 'Policy'}</h3>
-            <p className="mb-2">Premium Amount: ৳ {policyData?.premiumAmount?.toLocaleString() || 'N/A'}</p>
-            <p className="mb-4">Payment Frequency: {policyData?.paymentFrequency || 'N/A'}</p>
+        <div>
+            <form onSubmit={handleSubmit}>
+                <h3 className="text-xl font-bold mb-4">Pay for: {statePolicyData?.policyName || 'Policy'}</h3>
+                <p className="mb-2">Premium Amount: ৳ {statePolicyData?.premiumAmount?.toLocaleString() || 'N/A'}</p>
+                <p className="mb-4">Payment Frequency: {statePolicyData?.paymentFrequency || 'N/A'}</p>
 
-            <div className="form-control">
-                <label className="label">
-                    <span className="label-text">Card Details</span>
-                </label>
                 <CardElement
                     options={{
                         style: {
@@ -162,19 +149,13 @@ const PaymentForm = ({ policyData }) => {
                         },
                     }}
                 />
-            </div>
-            {error && <p className="text-red-500 mt-2">{error}</p>}
-            {transactionId && <p className="text-green-500 mt-2">Transaction ID: {transactionId}</p>}
-            <div className="form-control mt-6">
-                <button
-                    type="submit"
-                    disabled={!stripe || !elements || processing || !clientSecret}
-                    className="btn btn-primary"
-                >
-                    {processing ? <Spinner /> : `Pay ৳ ${policyData?.premiumAmount?.toLocaleString() || 'N/A'}`}
+                <button className="btn btn-sm btn-primary my-4" type="submit" disabled={!stripe || !clientSecret}>
+                    Pay BDT {premiumAmount}
                 </button>
-            </div>
-        </form>
+                <p className="text-red-600">{error}</p>
+                {transactionId && <p className="text-green-600">Your transaction Id: {transactionId}</p>}
+            </form>
+        </div>
     );
 };
 

@@ -2,7 +2,6 @@ import React, { useContext, useEffect, useState } from 'react';
 import { AuthContext } from '../../../context/AuthContext';
 import useAxiosSecure from '../../../hooks/useAxiosSecure';
 import Spinner from '../../../component/Loader/Spinner';
-import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router';
 
 const PaymentStatus = () => {
@@ -14,22 +13,22 @@ const PaymentStatus = () => {
   const navigate = useNavigate();
   console.log(transactions);
 
-  useEffect(() => {
-    if (!user || userLoading) return;
-
-    const fetchTransactions = async () => {
-      try {
-        const res = await axiosSecure.get(`/payments/status?email=${user.email}`);
-        setTransactions(res.data || []);
-      } catch (err) {
-        toast.error('Failed to load payment details.');
-      } finally {
+ useEffect(() => {
+    if (user?.email) {
+        axiosSecure.get(`/payments/status?email=${user.email}`)
+            .then(res => {
+                console.log("Payments status data from API:", res.data); 
+                setTransactions(res.data);
+                setLoading(false);
+            })
+            .catch(error => {
+                console.error("Error fetching payment status:", error); 
+                setLoading(false);
+            });
+    } else {
         setLoading(false);
-      }
-    };
-
-    fetchTransactions();
-  }, [user, userLoading, axiosSecure]);
+    }
+}, [axiosSecure, user]);
 
 
   const handleMakePayment = (transaction) => {
@@ -60,7 +59,6 @@ const PaymentStatus = () => {
       </div>
     );
   }
-
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold text-center mb-6 text-gray-800">Your Payment Status</h1>
@@ -87,7 +85,7 @@ const PaymentStatus = () => {
                     : 'N/A'}
                 </td>
                 <td>{transaction.paymentFrequency || 'N/A'}</td>
-                <td>
+                 <td>
                   <span
                     className={`px-2 py-1 rounded-full text-xs font-semibold ${transaction.paymentStatus?.toLowerCase() === 'paid'
                         ? 'bg-green-100 text-green-600'
@@ -102,7 +100,7 @@ const PaymentStatus = () => {
                   <button
                     onClick={() => handleMakePayment(transaction)}
                     className="btn btn-xs btn-primary bg-blue-600 hover:bg-blue-700 text-white"
-                    disabled={transaction.status === 'Paid'}
+                    disabled={transaction.paymentStatus === 'Paid'} 
                   >
                     {transaction.paymentStatus === 'Paid' ? 'Paid' : 'Make Payment'}
                   </button>

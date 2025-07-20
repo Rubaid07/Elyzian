@@ -13,6 +13,7 @@ const ApplicationFormPage = () => {
     const axiosSecure = useAxiosSecure();
     const { register, handleSubmit, formState: { errors }, reset } = useForm();
     const [policy, setPolicy] = useState(null);
+    console.log(policy);
     const [loadingPolicy, setLoadingPolicy] = useState(true);
 
     useEffect(() => {
@@ -33,7 +34,7 @@ const ApplicationFormPage = () => {
             fetchPolicyDetails();
         }
     }, [id, axiosSecure, navigate]);
-    
+
     const onSubmit = async (data) => {
         console.log(data);
         if (!policy) {
@@ -43,8 +44,9 @@ const ApplicationFormPage = () => {
 
         try {
             const applicationData = {
-                policyId: id,
-                policyName: policy.policyTitle,
+                policyId: id, 
+                policyName: policy.policyTitle, 
+                policyNumber: policy.policyNumber || 'N/A',
                 applicantName: data.fullName,
                 email: data.email,
                 photo: data.photo,

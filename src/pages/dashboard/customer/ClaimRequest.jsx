@@ -2,30 +2,53 @@ import React, { useContext, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { AuthContext } from '../../../context/AuthContext';
 import useAxiosSecure from '../../../hooks/useAxiosSecure';
-
 const ClaimRequest = () => {
   const { user } = useContext(AuthContext);
   const axiosSecure = useAxiosSecure();
-
   const [loading, setLoading] = useState(false);
   const [policies, setPolicies] = useState([]);
   const [formData, setFormData] = useState({
-    policyId: '',
+    applicationId: '',
+    policyId: '',     
     reason: '',
     documents: ''
   });
-
-  useEffect(() => {
-    if (user?.email) {
-      axiosSecure.get(`/policies/my?email=${user.email}`)
-        .then(res => setPolicies(res.data || []))
-        .catch(err => console.error('Error fetching policies:', err));
+ useEffect(() => {
+  const fetchPolicyName = async () => {
+    if (formData.policyId) {
+      const res = await axiosSecure.get(`/api/policies/${formData.policyId}`);
+      setFormData(prev => ({
+        ...prev,
+        policyName: res.data?.name || ''
+      }));
     }
-  }, [user, axiosSecure]);
-
+  };
+  fetchPolicyName();
+}, [formData.policyId]);
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    console.log(`2. handleChange triggered: name=${name}, value=${value}`);
+
+    if (name === "applicationId") {
+      const selectedApplication = policies.find(p => p._id === value);
+      console.log('3. Selected Application found:', selectedApplication);
+
+      setFormData(prev => {
+        const newFormData = {
+          ...prev,
+          applicationId: value,
+          policyId: selectedApplication ? selectedApplication.policyId : '',
+        };
+        console.log('4. formData after handleChange (applicationId):', newFormData);
+        return newFormData;
+      });
+    } else {
+      setFormData(prev => {
+        const newFormData = { ...prev, [name]: value };
+        console.log('5. formData after handleChange (other fields):', newFormData);
+        return newFormData;
+      });
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -33,19 +56,25 @@ const ClaimRequest = () => {
     setLoading(true);
 
     const claim = {
-      ...formData,
-      email: user.email,
+      applicationId: formData.applicationId,
+      policyId: formData.policyId,          
+      reason: formData.reason,
+      documents: formData.documents,
+      userEmail: user.email,
       status: 'pending',
-      createdAt: new Date()
+      appliedAt: new Date()
     };
+
+    console.log('6. Submitting claim object to backend:', claim); 
+    console.log('   Is policyId empty?', !claim.policyId);
 
     try {
       await axiosSecure.post('/claims', claim);
       toast.success('Claim request submitted successfully!');
-      setFormData({ policyId: '', reason: '', documents: '' });
+      setFormData({ applicationId: '', policyId: '', reason: '', documents: '' });
     } catch (error) {
-      console.error(error);
-      toast.error('Failed to submit claim.');
+      console.error('Claim submission error:', error);
+      toast.error(`Failed to submit claim: ${error.response?.data?.message || error.message}`);
     } finally {
       setLoading(false);
     }
@@ -59,14 +88,14 @@ const ClaimRequest = () => {
         <div>
           <label className="block text-sm font-medium mb-1">Select Policy</label>
           <select
-            name="policyId"
-            value={formData.policyId}
+            name="applicationId"
+            value={formData.applicationId} 
             onChange={handleChange}
             required
             className="select select-bordered w-full"
           >
             <option value="" disabled>Select your policy</option>
-            {policies.map(policy => (
+            {policies.map(policy => ( 
               <option key={policy._id} value={policy._id}>
                 {policy.policyName} ({policy.policyNumber})
               </option>
@@ -99,7 +128,7 @@ const ClaimRequest = () => {
           />
         </div>
 
-         <button
+        <button
           type="submit"
           className="btn bg-sky-700 hover:bg-sky-800 text-white w-full mt-4 flex justify-center items-center gap-2"
           disabled={loading}

@@ -1,10 +1,12 @@
 import React from 'react';
 import CustomerReviews from './CustomerReview';
+import Hero from './Hero';
 
 const Home = () => {
     return (
         <div>
-            <CustomerReviews></CustomerReviews>
+            <Hero></Hero>
+            {/* <CustomerReviews></CustomerReviews> */}
         </div>
     );
 };

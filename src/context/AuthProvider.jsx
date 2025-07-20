@@ -33,19 +33,27 @@ const AuthProvider = ({ children }) => {
         return signInWithPopup(auth, googleProvider)
     }
 
-    useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+     useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, currentUser => {
+            setUser(currentUser);
             if (currentUser) {
-                currentUser.getIdToken().then((token) => {
-                    setUser({ ...currentUser, accessToken: token });
-                    setLoading(false);
-                });
+                // JWT ইস্যু করার জন্য সার্ভারে রিকোয়েস্ট করুন
+                currentUser.getIdToken()
+                    .then(idToken => {
+                        console.log("Firebase ID Token available:", idToken ? "Yes" : "No");
+                        // এই টোকেনটি localStorage-এ সেভ করুন
+                        localStorage.setItem('access-token', idToken);
+                        // সার্ভারে JWT পেতে রিকোয়েস্ট করার দরকার নেই, যেহেতু Firebase টোকেনই যথেষ্ট
+                        // যদি আপনার সার্ভার কাস্টম JWT ব্যবহার করে, তবে এখানে তা করুন
+                    })
+                    .catch(error => {
+                        console.error("Error getting Firebase ID token:", error);
+                    });
             } else {
-                setUser(null);
-                setLoading(false);
+                localStorage.removeItem('access-token');
             }
+            setLoading(false);
         });
-
         return () => unsubscribe();
     }, []);
     const authInfo = {

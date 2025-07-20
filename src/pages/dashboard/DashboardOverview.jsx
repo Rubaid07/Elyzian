@@ -2,7 +2,11 @@ import React, { useContext, useEffect, useState } from 'react';
 import useAxiosSecure from '../../hooks/useAxiosSecure';
 import { AuthContext } from '../../context/AuthContext';
 import Spinner from '../../component/Loader/Spinner';
-import { FaUsers, FaFileContract, FaHandHoldingMedical, FaDollarSign, FaUserTie, FaBlog, FaFileAlt, FaUmbrellaBeach, FaCreditCard, FaExclamationTriangle, FaFileSignature, FaMoneyBillWave } from 'react-icons/fa';
+import {
+    FaUsers, FaFileContract, FaHandHoldingMedical, FaDollarSign, FaUserTie,
+    FaBlog, FaFileAlt, FaUmbrellaBeach, FaCreditCard, FaExclamationTriangle,
+    FaFileSignature, FaMoneyBillWave
+} from 'react-icons/fa';
 import {
     BarChart, PieChart, LineChart, Bar, Pie, Line, XAxis, YAxis, CartesianGrid,
     Tooltip, Legend, ResponsiveContainer, Cell
@@ -35,7 +39,7 @@ const DashboardOverview = () => {
                     const transactionsRes = await axiosSecure.get('/admin/transactions');
                     setDashboardData(prevData => ({
                         ...prevData,
-                        transactions: transactionsRes.data || [] 
+                        transactions: transactionsRes.data || []
                     }));
                 }
 
@@ -85,9 +89,10 @@ const DashboardOverview = () => {
                     data: Object.keys(appStatusData || {}).map(status => ({
                         name: status,
                         value: appStatusData[status],
-                        color: status === 'approved' ? '#10B981' :
-                            status === 'pending' ? '#3B82F6' : '#EF4444'
-                    })).filter(entry => entry.value > 0) 
+                        color: status === 'approved' ? '#4CAF50' :
+                            status === 'pending' ? '#2196F3' :
+                                '#F44336'
+                    })).filter(entry => entry.value > 0)
                 }
             ];
         }
@@ -107,7 +112,7 @@ const DashboardOverview = () => {
                     name: policy.length > 15 ? `${policy.substring(0, 15)}...` : policy,
                     value: customersByPolicy[policy]
                 }))
-                .sort((a, b) => b.value - a.value); 
+                .sort((a, b) => b.value - a.value);
 
             return [
                 {
@@ -116,8 +121,9 @@ const DashboardOverview = () => {
                     data: Object.keys(assignedAppStatus || {}).map(status => ({
                         name: status,
                         value: assignedAppStatus[status],
-                        color: status === 'approved' ? '#10B981' :
-                            status === 'pending' ? '#3B82F6' : '#EF4444'
+                        color: status === 'approved' ? '#4CAF50' :
+                            status === 'pending' ? '#2196F3' :
+                                '#F44336'
                     })).filter(entry => entry.value > 0)
                 },
                 {
@@ -139,10 +145,10 @@ const DashboardOverview = () => {
             const policyTypes = dashboardData.recentApplications?.reduce((acc, app) => {
                 const type = app.policyName?.includes('Health') ? 'Health' :
                     app.policyName?.includes('Life') ? 'Life' :
-                    app.policyName?.includes('Car') ? 'Car' : 'Other';
+                        app.policyName?.includes('Car') ? 'Car' : 'Other';
                 acc[type] = (acc[type] || 0) + 1;
                 return acc;
-            }, { Health: 0, Life: 0, Car: 0, Other: 0 }); 
+            }, { Health: 0, Life: 0, Car: 0, Other: 0 });
 
             return [
                 {
@@ -150,7 +156,7 @@ const DashboardOverview = () => {
                     type: "bar",
                     data: paymentData || [],
                     dataKey: "amount",
-                    xAxisKey: "name" 
+                    xAxisKey: "name"
                 },
                 {
                     title: "Applied Policy Types Distribution",
@@ -158,9 +164,10 @@ const DashboardOverview = () => {
                     data: Object.keys(policyTypes || {}).map(type => ({
                         name: type,
                         value: policyTypes[type],
-                        color: type === 'Health' ? '#3B82F6' :
-                            type === 'Life' ? '#6366F1' :
-                            type === 'Car' ? '#10B981' : '#EF4444'
+                        color: type === 'Health' ? '#2196F3' :
+                            type === 'Life' ? '#673AB7' :
+                                type === 'Car' ? '#4CAF50' :
+                                    '#34699A'
                     })).filter(entry => entry.value > 0)
                 }
             ];
@@ -243,21 +250,21 @@ const DashboardOverview = () => {
                 return null;
         }
     };
-    const getIconComponent = (title) => {
+     const getIconComponent = (title) => {
         switch (title) {
-            case 'Total Users': return <FaUsers />;
-            case 'Total Policies': return <FaFileContract />;
-            case 'Total Applications': return <FaFileSignature />;
-            case 'Total Claims': return <FaHandHoldingMedical />;
-            case 'Total Income': return <FaDollarSign />;
-            case 'Assigned Customers': return <FaUserTie />;
-            case 'Your Blogs': return <FaBlog />;
-            case 'Assigned Applications': return <FaFileAlt />;
-            case 'My Policies': return <FaUmbrellaBeach />;
-            case 'Total Payments Made': return <FaCreditCard />;
-            case 'Total Amount Paid': return <FaMoneyBillWave />;
-            case 'Claim Requests': return <FaExclamationTriangle />;
-            default: return <FaDollarSign />;
+            case 'Total Users': return <FaUsers className="text-2xl" />;
+            case 'Total Policies': return <FaFileContract className="text-2xl" />;
+            case 'Total Applications': return <FaFileSignature className="text-2xl" />;
+            case 'Total Claims': return <FaHandHoldingMedical className="text-2xl" />;
+            case 'Total Income': return <FaDollarSign className="text-2xl" />;
+            case 'Assigned Customers': return <FaUserTie className="text-2xl" />;
+            case 'Your Blogs': return <FaBlog className="text-2xl" />;
+            case 'Assigned Applications': return <FaFileAlt className="text-2xl" />;
+            case 'My Policies': return <FaUmbrellaBeach className="text-2xl" />;
+            case 'Total Payments Made': return <FaCreditCard className="text-2xl" />;
+            case 'Total Amount Paid': return <FaMoneyBillWave className="text-2xl" />;
+            case 'Claim Requests': return <FaExclamationTriangle className="text-2xl" />;
+            default: return <FaDollarSign className="text-2xl" />;
         }
     };
     const getIconColorClass = (title) => {
@@ -305,31 +312,23 @@ const DashboardOverview = () => {
     return (
         <div className="container mx-auto p-6 space-y-8 min-h-screen bg-gray-50">
             <h2 className="text-4xl font-extrabold text-gray-900 text-center mb-10 pt-4">
-                Welcome, <span className="text-sky-700">{user?.displayName?.split(' ')[0] || 'User'}!</span> 👋
+                Welcome, <span className="text-sky-700">{user?.displayName?.split(' ')[0] || 'User'}!</span>
             </h2>
-            <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {dashboardData.cards.map((card, idx) => (
-                    <div key={idx} className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100 flex items-start space-x-4">
-                        <div className={`p-3 rounded-full ${getIconColorClass(card.title).replace('text-', 'bg-')} bg-opacity-10`}>
-                            <span className={`text-3xl ${getIconColorClass(card.title)}`}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
+                {dashboardData.cards?.map((card, index) => (
+                    <div key={index} className="bg-white p-4 rounded-lg shadow border border-gray-200">
+                        <div className="flex items-center">
+                            <div className={`p-3 rounded-full ${card.color} bg-opacity-10 mr-4`}>
                                 {getIconComponent(card.title)}
-                            </span>
-                        </div>
-                        <div className="flex-grow">
-                            <p className="text-gray-600 text-sm font-medium">{card.title}</p>
-                            <h3 className="text-3xl font-extrabold text-gray-900">{card.value}</h3>
-                            {card.growth && (
-                                <p className="text-xs text-gray-500 mt-1">
-                                    <span className={`${card.growth.includes('+') ? 'text-green-500' : 'text-red-500'} font-semibold`}>
-                                        {card.growth.split(' ')[0]}
-                                    </span>{" "}
-                                    <span className="text-gray-500">{card.growth.substring(card.growth.indexOf(' ') + 1)}</span>
-                                </p>
-                            )}
+                            </div>
+                            <div>
+                                <p className="text-sm text-gray-500">{card.title}</p>
+                                <p className="text-xl font-bold">{card.value}</p>
+                            </div>
                         </div>
                     </div>
                 ))}
-            </section>
+            </div>
             <hr className="my-8 border-gray-300" />
             {getChartData().length > 0 && (
                 <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -609,13 +608,13 @@ const DashboardOverview = () => {
                     </div>
                 )}
                 {((role === 'admin' && !(dashboardData?.recentTransactions?.length > 0) && !(dashboardData?.recentApplications?.length > 0)) ||
-                 (role === 'agent' && !(dashboardData?.recentBlogs?.length > 0) && !(dashboardData?.recentAssignedCustomers?.length > 0) && !(dashboardData?.recentAssignedApplications?.length > 0)) ||
-                 (role === 'customer' && !(dashboardData?.recentApplications?.length > 0) && !(dashboardData?.recentPaidPolicies?.length > 0))) &&
-                 (!(dashboardData?.recentPolicies?.length > 0) && !(dashboardData?.recentBlogs?.length > 0)) && (
-                    <div className="text-center text-gray-500 p-4 bg-gray-50 rounded-lg">
-                        No specific recent activity to display for your role. Please check general activities below.
-                    </div>
-                )}
+                    (role === 'agent' && !(dashboardData?.recentBlogs?.length > 0) && !(dashboardData?.recentAssignedCustomers?.length > 0) && !(dashboardData?.recentAssignedApplications?.length > 0)) ||
+                    (role === 'customer' && !(dashboardData?.recentApplications?.length > 0) && !(dashboardData?.recentPaidPolicies?.length > 0))) &&
+                    (!(dashboardData?.recentPolicies?.length > 0) && !(dashboardData?.recentBlogs?.length > 0)) && (
+                        <div className="text-center text-gray-500 p-4 bg-gray-50 rounded-lg">
+                            No specific recent activity to display for your role. Please check general activities below.
+                        </div>
+                    )}
             </section>
         </div>
     );

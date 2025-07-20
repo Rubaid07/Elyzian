@@ -5,6 +5,7 @@ import Spinner from '../../../component/Loader/Spinner';
 import toast from 'react-hot-toast';
 import Swal from 'sweetalert2';
 import { useForm } from 'react-hook-form';
+
 const ReviewModal = ({ closeModal, onSubmitReview, modalRef }) => {
   const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm();
   const [selectedRating, setSelectedRating] = useState(null);
@@ -63,8 +64,6 @@ const ReviewModal = ({ closeModal, onSubmitReview, modalRef }) => {
   );
 };
 
-// export default ReviewModal;
-
 
 const MyPolicies = () => {
   const { user, loading: userLoading } = useContext(AuthContext);
@@ -74,6 +73,7 @@ const MyPolicies = () => {
   const [error, setError] = useState(null);
   const reviewModalRef = useRef(null);
   const [selectedPolicyForReview, setSelectedPolicyForReview] = useState(null);
+  console.log(applications);
 
   useEffect(() => {
     if (!user || userLoading) {
@@ -108,6 +108,8 @@ const MyPolicies = () => {
           <p><strong>Policy ID:</strong> ${app.policyId || 'N/A'}</p>
           <p><strong>Applied Date:</strong> ${new Date(app.appliedAt).toLocaleDateString()}</p>
           <p><strong>Status:</strong> <span style="font-weight: bold; color: ${app.status === 'pending' ? '#3182ce' : app.status === 'approved' ? '#38a169' : '#e53e3e'};">${app.status}</span></p>
+          ${app.paymentStatus?.toLowerCase() === 'paid' ? `<p><strong>Payment Status:</strong> <span style="font-weight: bold; color: #38a169;">Paid</span></p>` : ''}
+          ${app.transactionId ? `<p><strong>Transaction ID:</strong> ${app.transactionId}</p>` : ''}
           <p><strong>Address:</strong> ${app.address || 'N/A'}</p>
           <p><strong>NID/SSN:</strong> ${app.nidSsn || 'N/A'}</p>
           <p><strong>Nominee Name:</strong> ${app.nomineeName || 'N/A'}</p>

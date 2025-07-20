@@ -36,6 +36,7 @@ import Agents from "../pages/Agents";
 import DashboardOverview from "../pages/dashboard/DashboardOverview";
 import ApplyAsAgent from "../pages/dashboard/customer/ApplyAsAgent";
 import EditBlog from "../pages/dashboard/agent/EditBlog";
+import ManageClaims from "../pages/dashboard/Admin/ManageClaims";
 
 
 export const router = createBrowserRouter([
@@ -135,6 +136,10 @@ export const router = createBrowserRouter([
       {
         path: 'manage-agents',
         Component: ManageAgents
+      },
+      {
+        path: 'manage-claims',
+        Component: ManageClaims
       },
 
       // Agent Routes
