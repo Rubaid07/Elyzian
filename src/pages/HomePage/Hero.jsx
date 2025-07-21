@@ -1,8 +1,9 @@
 import React from 'react';
+import { Link } from 'react-router';
 
 const Hero = () => {
   return (
-    <div className="relative bg-gradient-to-b from-blue-50 to-white min-h-screen flex items-center justify-center px-6 md:px-20 py-12 overflow-hidden">
+    <div className="relative bg-gradient-to-b from-blue-50 to-white min-h-screen flex justify-center px-6 md:px-20 py-12 overflow-hidden">
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-1/4 left-1/4 w-64 h-64 rounded-full bg-blue-100 opacity-20 blur-3xl"></div>
         <div className="absolute bottom-1/3 right-1/4 w-72 h-72 rounded-full bg-blue-200 opacity-15 blur-3xl"></div>
@@ -23,18 +24,15 @@ const Hero = () => {
       <div className="z-10 max-w-7xl mx-auto flex flex-col-reverse md:flex-row items-center gap-12 md:gap-20">
         <div className="saira text-center md:text-left space-y-6 md:space-y-8">
           <h1 className="text-4xl md:text-6xl font-bold text-gray-900 leading-tight">
-            Secure Your Future with <span className="text-blue-600">Elyzian</span>
+            Secure Your Future with <span className="text-sky-600">Elyzian</span>
           </h1>
           <p className="text-gray-600 text-lg md:text-xl max-w-2xl">
             We provide trusted insurance solutions to protect what matters most - your family, your health, and your peace of mind.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
-            <button className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-all transform hover:scale-105 shadow-lg">
+            <Link to="/policies" className="px-8 py-3 bg-sky-700 hover:bg-sky-800 text-white rounded-lg font-medium transition-all cursor-pointer">
               Get Free Quote
-            </button>
-            <button className="px-8 py-3 border border-blue-600 text-blue-600 hover:bg-blue-50 rounded-lg font-medium transition-all transform hover:scale-105">
-              Learn More
-            </button>
+            </Link>
           </div>
           
           <div className="flex flex-wrap justify-center md:justify-start gap-6 pt-4">
@@ -64,19 +62,6 @@ const Hero = () => {
               alt="Family Protection"
               className="w-[300px] md:w-[450px]"
             />
-          </div>
-          <div className="absolute -bottom-6 -right-6 bg-white p-4 rounded-xl shadow-xl border border-gray-100 z-20 w-40">
-            <div className="flex items-center gap-2">
-              <div className="bg-blue-100 p-2 rounded-lg">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                </svg>
-              </div>
-              <div>
-                <p className="font-medium text-gray-900">Secure Coverage</p>
-                <p className="text-sm text-gray-500">24/7 Protection</p>
-              </div>
-            </div>
           </div>
         </div>
       </div>

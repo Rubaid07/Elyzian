@@ -9,15 +9,13 @@ const MainLayout = () => {
     const { loading } = useContext(AuthContext);
     return (
         <div>
-            <div className='absolute w-full'>
-                <Navbar></Navbar>
-            </div>
+            <Navbar></Navbar>
             {loading ? (
                 <div className="flex justify-center items-center min-h-[60vh]">
                     <LoadingLogo />
                 </div>
             ) : (
-                <div className=''>
+                <div className='bg-blue-50'>
                     <Outlet />
                 </div>
             )}
