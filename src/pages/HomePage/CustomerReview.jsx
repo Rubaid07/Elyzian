@@ -123,7 +123,7 @@ const CustomerReviews = () => {
           <Slider {...settings}>
             {reviews.map((review) => (
               <div key={review._id} className="px-4 py-2 h-full">
-                <div className="bg-white rounded-xl shadow-lg overflow-hidden h-full transform transition-all duration-300 hover:shadow-xl hover:-translate-y-1 flex flex-col">
+                <div className="bg-white rounded-xl shadow-lg overflow-hidden min-h-[415px] transform transition-all duration-300 hover:shadow-xl hover:-translate-y-1 flex flex-col">
                   <div className="p-8 flex flex-col flex-grow">
                     <div className="flex items-center mb-6">
                       <div className="relative">

@@ -6,9 +6,12 @@ import toast from 'react-hot-toast';
 import Swal from 'sweetalert2';
 import { useForm } from 'react-hook-form';
 
+// ReviewModal কম্পোনেন্টটি একই ফাইলের মধ্যে সংজ্ঞায়িত করা হয়েছে
 const ReviewModal = ({ closeModal, onSubmitReview, modalRef }) => {
-  const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm();
+  const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm();
   const [selectedRating, setSelectedRating] = useState(null);
+
+  const feedbackValue = watch('feedback', '');
 
   const handleRatingChange = (event) => {
     const value = parseInt(event.target.value);
@@ -19,8 +22,11 @@ const ReviewModal = ({ closeModal, onSubmitReview, modalRef }) => {
   const handleFormSubmit = (data) => {
     onSubmitReview(data);
     reset();
-    setSelectedRating(null); 
+    setSelectedRating(null);
   };
+
+  const charCount = feedbackValue.length;
+  const maxChars = 200;
 
   return (
     <dialog id="review_modal" className="modal" ref={modalRef}>
@@ -42,16 +48,30 @@ const ReviewModal = ({ closeModal, onSubmitReview, modalRef }) => {
                 />
               ))}
             </div>
+            <input
+              type="hidden"
+              {...register('rating', { required: 'Please select a rating' })}
+            />
             {errors.rating && <p className="text-red-500 text-sm mt-1">{errors.rating.message}</p>}
           </div>
           <div>
             <label className="block font-medium mb-2">Feedback</label>
             <textarea
               rows="4"
+              maxLength={maxChars}
               className="textarea textarea-bordered w-full"
               placeholder="Share your experience..."
-              {...register('feedback', { required: 'Feedback is required' })}
+              {...register('feedback', {
+                required: 'Feedback is required',
+                maxLength: {
+                  value: maxChars,
+                  message: `Feedback must not exceed ${maxChars} characters.`,
+                },
+              })}
             />
+            <p className="text-right text-sm text-gray-500 mt-1">
+              {charCount}/{maxChars} characters
+            </p>
             {errors.feedback && <p className="text-red-500 text-sm mt-1">{errors.feedback.message}</p>}
           </div>
           <div className="flex justify-end gap-3">
@@ -73,7 +93,6 @@ const MyPolicies = () => {
   const [error, setError] = useState(null);
   const reviewModalRef = useRef(null);
   const [selectedPolicyForReview, setSelectedPolicyForReview] = useState(null);
-  console.log(applications);
 
   useEffect(() => {
     if (!user || userLoading) {
@@ -152,15 +171,15 @@ const MyPolicies = () => {
     try {
       const res = await axiosSecure.post('/reviews', reviewPayload);
       if (res.data.insertedId) {
-        toast.success('Review submitted!');
+        toast.success('Review submitted successfully!');
         reviewModalRef.current.close();
         setSelectedPolicyForReview(null);
       } else {
         toast.error('Failed to submit review.');
       }
     } catch (err) {
-      console.error('Error:', err);
-      toast.error('Something went wrong.');
+      console.error('Error submitting review:', err);
+      toast.error('Something went wrong while submitting your review.');
     }
   };
 
