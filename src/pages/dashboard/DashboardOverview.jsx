@@ -600,7 +600,7 @@ const DashboardOverview = () => {
                                         <p className="text-sm text-gray-500 mb-4">
                                             By {blog.createdBy} • {new Date(blog.createdAt).toLocaleDateString()}
                                         </p>
-                                        <p className="text-gray-600 line-clamp-3">{blog.content || 'No content available'}</p>
+                                        <p className="text-gray-600 line-clamp-3">{blog.description || 'No content available'}</p>
                                     </div>
                                 </div>
                             ))}

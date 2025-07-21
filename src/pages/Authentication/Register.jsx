@@ -76,7 +76,9 @@ const Register = () => {
 
         await axios.put(`${import.meta.env.VITE_API_URL}/users/${email}`, {
           name,
+          email,
           photo: imageUrl,
+          role: 'customer'
         }, {
           headers: {
             Authorization: `Bearer ${token}`
@@ -93,28 +95,28 @@ const Register = () => {
       });
   };
 
-  const handleGoogleSignIn = async () => {
-    setLoading(true);
-    try {
-      const result = await signInWithGoogle();
+  const handleGoogleSignIn = () => {
+  signInWithGoogle()
+    .then(result => {
       const user = result.user;
-      const token = await user.getIdToken();
-      localStorage.setItem('access-token', token);
-
-      await axios.post(`${import.meta.env.VITE_API_URL}/users`, {
-        name: user.displayName || '',
+      user.getIdToken().then(token => {
+        localStorage.setItem('access-token', token);
+      });
+      axios.put(`${import.meta.env.VITE_API_URL}/users/${user.email}`, {
+        name: user.displayName,
         email: user.email,
         photo: user.photoURL || 'https://i.ibb.co/5GzXkwq/user.png',
+        role: "customer" 
       });
 
       toast.success("Logged in successfully");
       navigate(`${location.state ? location.state : "/"}`);
-    } catch (error) {
+    })
+    .catch(error => {
       toast.error(error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+    });
+};
+
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];

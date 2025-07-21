@@ -37,25 +37,29 @@ const Login = () => {
   };
 
   const handleGoogleSignIn = () => {
-    signInWithGoogle()
-      .then(result => {
-        const user = result.user;
-        user.getIdToken().then(token => {
-          localStorage.setItem('access-token', token);
-        });
-        axios.put(`${import.meta.env.VITE_API_URL}/users/${user.email}`, {
-          name: user.displayName,
-          email: user.email,
-          photo: user.photoURL,
-        });
-
-        toast.success("Logged in successfully");
-        navigate(`${location.state ? location.state : "/"}`);
-      })
-      .catch(error => {
-        toast.error(error.message);
+  signInWithGoogle()
+    .then(result => {
+      const user = result.user;
+      user.getIdToken().then(token => {
+        localStorage.setItem('access-token', token);
       });
-  };
+
+      // ✅ Backend এ ইউজার ইনফো সেভ করো (PUT ব্যবহার করলে idempotent হয়)
+      axios.put(`${import.meta.env.VITE_API_URL}/users/${user.email}`, {
+        name: user.displayName,
+        email: user.email,
+        photo: user.photoURL || 'https://i.ibb.co/5GzXkwq/user.png',
+        role: "customer" // default role
+      });
+
+      toast.success("Logged in successfully");
+      navigate(`${location.state ? location.state : "/"}`);
+    })
+    .catch(error => {
+      toast.error(error.message);
+    });
+};
+
 
 
   return (
