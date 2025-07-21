@@ -1,51 +1,116 @@
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
-import { Link, Navigate } from 'react-router';
+import { Link } from 'react-router';
 import Spinner from '../../component/Loader/Spinner';
+import { FaCalendarAlt, FaArrowRight } from 'react-icons/fa';
 
 const BlogList = () => {
     const [blogs, setBlogs] = useState([]);
     const [loading, setLoading] = useState(true);
-    console.log(blogs);
+
     useEffect(() => {
-        axios.get(`${import.meta.env.VITE_API_URL}/latest-blogs`)
-            .then(res => {
-                setBlogs(res.data);
+        const fetchBlogs = async () => {
+            try {
+                const response = await axios.get(`${import.meta.env.VITE_API_URL}/latest-blogs`);
+                setBlogs(response.data);
+            } catch (err) {
+                console.error("Failed to fetch blogs:", err);
+            } finally {
                 setLoading(false);
-            })
-            .catch(err => {
-                console.error("Failed to fetch blogs for homepage:", err);
-                setLoading(false);
-            });
+            }
+        };
+
+        fetchBlogs();
     }, []);
 
     if (loading) {
-        return <Spinner></Spinner>
+        return (
+            <div className="min-h-[60vh] flex items-center justify-center">
+                <Spinner className="w-16 h-16" />
+            </div>
+        );
     }
 
     if (blogs.length === 0) {
-        return <p>No blogs to display at the moment.</p>;
+        return (
+            <div className="min-h-[60vh] flex items-center justify-center">
+                <div className="text-center p-8 bg-white rounded-xl shadow-md max-w-md">
+                    <h3 className="text-2xl font-bold text-gray-800 mb-2">No Blogs Found</h3>
+                    <p className="text-gray-600">Check back later for new articles!</p>
+                </div>
+            </div>
+        );
     }
 
     return (
-        <div className="container mx-auto">
-            <h2 className="text-3xl font-bold mb-6 text-center">Latest Blogs</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {blogs.map(blog => (
-                    <div key={blog._id} className="bg-white rounded-lg shadow-md overflow-hidden">
-                        {blog.imageUrl && (
-                            <img src={blog.imageUrl} alt={blog.title} className="w-full h-48 object-cover" />
-                        )}
-                        <div className="p-4">
-                            <h3 className="text-xl font-semibold mb-2">{blog.title}</h3>
-                            <p className="text-gray-600 text-sm mb-3">{blog.summary}</p>
-                            <p className="text-gray-500 text-xs">Published on: {new Date(blog.createdAt).toLocaleDateString()}</p>
-                            <Link to={`/blog-details/${blog._id}`} className="btn btn-sm mt-3 bg-blue-500 text-white hover:bg-blue-600">Read More</Link>
+        <section className="bg-gradient-to-b from-gray-50 to-white py-20 px-4">
+            <div className="max-w-7xl mx-auto">
+                <div className="text-center mb-16">
+                    <h2 className="text-4xl font-bold text-gray-900 mb-4">
+                        Latest <span className="text-sky-600">Blog Articles</span>
+                    </h2>
+                    <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+                        Discover insightful articles and stay updated with our latest insurance tips and news.
+                    </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {blogs.map(blog => (
+                        <div 
+                            key={blog._id} 
+                            className="bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 border border-gray-100"
+                        >
+                            {blog.imageUrl && (
+                                <div className="h-60 overflow-hidden">
+                                    <img 
+                                        src={blog.imageUrl} 
+                                        alt={blog.title} 
+                                        className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                                    />
+                                </div>
+                            )}
+                            
+                            <div className="p-6">
+                                <div className="flex items-center text-gray-500 text-sm mb-3">
+                                    <FaCalendarAlt className="mr-2 text-blue-500" />
+                                    {new Date(blog.createdAt).toLocaleDateString('en-US', {
+                                        year: 'numeric',
+                                        month: 'long',
+                                        day: 'numeric'
+                                    })}
+                                </div>
+                                
+                                <h3 className="text-xl font-bold text-gray-900 mb-3 leading-tight">
+                                    {blog.title}
+                                </h3>
+                                
+                                <p className="text-gray-600 mb-5 line-clamp-3">
+                                    {blog.summary}
+                                </p>
+                                
+                                <Link 
+                                    to={`/blog-details/${blog._id}`}
+                                    className="inline-flex items-center text-blue-600 font-medium hover:text-blue-800 transition-colors"
+                                >
+                                    Read More <FaArrowRight className="ml-2" />
+                                </Link>
+                            </div>
                         </div>
+                    ))}
+                </div>
+
+                {blogs.length > 6 && (
+                    <div className="text-center mt-12">
+                        <Link 
+                            to="/blogs" 
+                            className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg font-medium hover:from-blue-700 hover:to-indigo-700 transition-all shadow-md hover:shadow-lg"
+                        >
+                            View All Articles
+                        </Link>
                     </div>
-                ))}
+                )}
             </div>
-        </div>
+        </section>
     );
 };
 

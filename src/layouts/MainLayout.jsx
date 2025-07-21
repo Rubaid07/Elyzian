@@ -15,7 +15,6 @@ const MainLayout = () => {
                     <LoadingLogo />
                 </div>
             ) : (
-               
                     <Outlet />
             )}
             <Footer></Footer>

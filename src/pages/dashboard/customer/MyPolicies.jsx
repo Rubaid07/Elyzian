@@ -6,7 +6,6 @@ import toast from 'react-hot-toast';
 import Swal from 'sweetalert2';
 import { useForm } from 'react-hook-form';
 
-// ReviewModal কম্পোনেন্টটি একই ফাইলের মধ্যে সংজ্ঞায়িত করা হয়েছে
 const ReviewModal = ({ closeModal, onSubmitReview, modalRef }) => {
   const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm();
   const [selectedRating, setSelectedRating] = useState(null);

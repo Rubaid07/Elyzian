@@ -11,6 +11,8 @@ const ApplyAsAgent = () => {
   const [loading, setLoading] = useState(false);
   const [hasApplied, setHasApplied] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [experience, setExperience] = useState('');
+  const [specialties, setSpecialties] = useState(''); 
 
   useEffect(() => {
     if (user?.email) {
@@ -25,12 +27,21 @@ const ApplyAsAgent = () => {
           console.error("Error checking agent application status:", error);
           setIsLoading(false);
         });
+    } else {
+        setIsLoading(false);
     }
   }, [user, axiosSecure]);
 
   const handleApply = (e) => {
     e.preventDefault();
     setLoading(true);
+    if (!experience || !specialties) {
+        toast.error('Please fill in all the required fields (Experience and Specialties)!');
+        setLoading(false);
+        return;
+    }
+
+    const specialtiesArray = specialties.split(',').map(s => s.trim()).filter(s => s.length > 0);
 
     const application = {
       name: user.displayName,
@@ -38,6 +49,8 @@ const ApplyAsAgent = () => {
       photo: user.photoURL,
       status: 'pending',
       appliedAt: new Date(),
+      experience: parseInt(experience),
+      specialties: specialtiesArray,
     };
 
     axiosSecure.post('/agent-applications', application)
@@ -47,12 +60,12 @@ const ApplyAsAgent = () => {
       })
       .catch((error) => {
         console.error("Application submission failed:", error);
-        toast.error('Failed to submit application. Please try again')
+        toast.error(error.response?.data?.message || 'Failed to submit application. Please try again')
       })
       .finally(() => setLoading(false));
   };
 
-  if (isLoading) return <Spinner></Spinner>
+  if (isLoading) return <Spinner />;
 
   if (hasApplied) {
     return (
@@ -68,7 +81,6 @@ const ApplyAsAgent = () => {
       </div>
     );
   }
-
   return (
     <div className="bg-white p-8 rounded-xl shadow-lg border border-sky-100 max-w-2xl mx-auto my-10">
       <div className="flex items-center justify-center mb-6">
@@ -80,11 +92,13 @@ const ApplyAsAgent = () => {
       </p>
 
       <form onSubmit={handleApply} className="space-y-6">
-         <div className="avatar">
-              <div className="w-24 rounded-full">
-                <img src={user?.photoURL || 'https://i.ibb.co/5GzXkwq/user.png'} alt="User" />
+          <div className="flex justify-center mb-4">
+              <div className="avatar">
+                  <div className="w-24 rounded-full border-2 border-sky-300">
+                      <img src={user?.photoURL || 'https://i.ibb.co/5GzXkwq/user.png'} alt="User Profile" />
+                  </div>
               </div>
-            </div>
+          </div>
         <div>
           <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
             Name:
@@ -108,6 +122,35 @@ const ApplyAsAgent = () => {
             value={user?.email || ''}
             disabled
           />
+        </div>
+        <div>
+          <label htmlFor="experience" className="block text-sm font-medium text-gray-700 mb-1">
+            Years of Experience: <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="number"
+            id="experience"
+            value={experience}
+            onChange={(e) => setExperience(e.target.value)}
+            className="input input-bordered w-full"
+            placeholder="Experience"
+            min="0" 
+            required
+          />
+        </div>
+
+        <div>
+          <label htmlFor="specialties" className="block text-sm font-medium text-gray-700 mb-1">
+            Specialties (comma-separated): <span className="text-red-500">*</span>
+          </label>
+          <textarea
+            id="specialties"
+            value={specialties}
+            onChange={(e) => setSpecialties(e.target.value)}
+            className="textarea textarea-bordered w-full h-24"
+            placeholder="Life Insurance, Health Insurance, Investment Planning"
+            required
+          ></textarea>
         </div>
 
         <button
