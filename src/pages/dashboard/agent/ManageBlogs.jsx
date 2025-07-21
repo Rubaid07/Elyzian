@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import useAxiosSecure from '../../../hooks/useAxiosSecure';
 import Spinner from '../../../component/Loader/Spinner';
-import { FaTrashAlt } from 'react-icons/fa';
+import { FaTrashAlt, FaPlus } from 'react-icons/fa';
 import { useNavigate } from 'react-router';
 import Swal from 'sweetalert2';
 
@@ -42,14 +42,21 @@ const ManageBlogs = () => {
                 text: "Your blog has been deleted.",
                 icon: "success"
               });
+            } else {
+                Swal.fire({
+                    title: 'Failed',
+                    text: 'Failed to delete blog: No blog found or already deleted.',
+                    icon: 'error'
+                });
             }
           })
           .catch(err => {
             console.error(err);
             Swal.fire({
               title: 'Failed',
-              text: 'Failed to delete blog',
-              icon: 'error'});
+              text: 'Failed to delete blog. An error occurred.',
+              icon: 'error'
+            });
           });
       }
     });
@@ -59,14 +66,26 @@ const ManageBlogs = () => {
     navigate(`/dashboard/manage-blogs/edit-blog/${id}`);
   };
 
+  const handleAddBlog = () => {
+    navigate('/dashboard/add-blog');
+  };
+
   if (loading) return <Spinner />;
 
   return (
     <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
-      <h2 className="text-2xl font-semibold mb-4">Manage Your Blogs</h2>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-2xl font-semibold">Manage Your Blogs</h2>
+        <button
+          onClick={handleAddBlog}
+          className="btn bg-sky-700 hover:bg-sky-800 text-white flex items-center gap-2"
+        >
+          <FaPlus /> Add New Blog
+        </button>
+      </div>
 
       {blogs.length === 0 ? (
-        <p>No blogs found.</p>
+        <p className="text-gray-600">No blogs found. Click "Add New Blog" to create one.</p>
       ) : (
         <div className="overflow-x-auto">
           <table className="table w-full">
@@ -74,7 +93,6 @@ const ManageBlogs = () => {
               <tr>
                 <th>#</th>
                 <th>Title</th>
-                <th>Category</th>
                 <th>Date</th>
                 <th>Action</th>
               </tr>
@@ -84,7 +102,6 @@ const ManageBlogs = () => {
                 <tr key={blog._id}>
                   <td>{i + 1}</td>
                   <td>{blog.title}</td>
-                  <td>{blog.category || 'N/A'}</td>
                   <td>{new Date(blog.createdAt).toLocaleDateString()}</td>
                   <td className="flex gap-2">
                     <button
@@ -100,7 +117,6 @@ const ManageBlogs = () => {
                       <FaTrashAlt /> Delete
                     </button>
                   </td>
-
                 </tr>
               ))}
             </tbody>

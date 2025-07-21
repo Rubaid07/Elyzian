@@ -15,9 +15,8 @@ const MainLayout = () => {
                     <LoadingLogo />
                 </div>
             ) : (
-                <div className='bg-blue-50'>
+               
                     <Outlet />
-                </div>
             )}
             <Footer></Footer>
         </div>

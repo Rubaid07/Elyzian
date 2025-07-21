@@ -15,34 +15,50 @@ const EditBlog = () => {
     const [updating, setUpdating] = useState(false);
     const [imageFile, setImageFile] = useState(null);
     const [preview, setPreview] = useState(null);
-
+    const [summaryValue, setSummaryValue] = useState(''); 
+    const maxSummaryChars = 300; 
     useEffect(() => {
         axiosSecure.get(`/blog/${id}`)
             .then(res => {
                 setBlog(res.data);
-                setPreview(res.data.image);
+                setPreview(res.data.imageUrl); 
+                setSummaryValue(res.data.summary || ''); 
             })
-            .catch(() => toast.error('Failed to load blog'))
+            .catch((err) => {
+                console.error("Failed to load blog:", err);
+                toast.error('Failed to load blog data.');
+            })
             .finally(() => setLoading(false));
     }, [id, axiosSecure]);
 
-    const handleUpdate = (e) => {
+    const handleInputChange = (e) => {
         const { name, value } = e.target;
         setBlog(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleSummaryChange = (e) => {
+        const text = e.target.value;
+        if (text.length <= maxSummaryChars) {
+            setSummaryValue(text);
+            setBlog(prev => ({ ...prev, summary: text })); 
+        }
     };
 
     const handleImageChange = (e) => {
         const file = e.target.files[0];
         setImageFile(file);
-        setPreview(URL.createObjectURL(file));
+        if (file) {
+            setPreview(URL.createObjectURL(file));
+        } else {
+            setPreview(null);
+        }
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setUpdating(true);
 
-        let imageUrl = blog.image;
-
+        let imageUrl = blog.imageUrl;
         if (imageFile) {
             const formData = new FormData();
             formData.append('image', imageFile);
@@ -53,18 +69,18 @@ const EditBlog = () => {
                 });
                 imageUrl = res.data.imageUrl;
             } catch (err) {
-                toast.error("Image upload failed");
+                console.error("Image upload failed:", err);
+                toast.error("Image upload failed. Please try again.");
+                setUpdating(false);
                 return;
             }
         }
 
         const updatedData = {
             title: blog.title,
-            category: blog.category,
-            description: blog.description,
-            premium: parseFloat(blog.premium),
-            coverageAmount: parseFloat(blog.coverageAmount),
-            image: imageUrl
+            summary: blog.summary,
+            content: blog.content, 
+            imageUrl: imageUrl 
         };
 
         try {
@@ -72,81 +88,63 @@ const EditBlog = () => {
             toast.success('Blog updated successfully!');
             navigate('/dashboard/manage-blogs');
         } catch (err) {
-            toast.error('Failed to update blog');
+            console.error("Error updating blog:", err.response ? err.response.data : err.message);
+            const errorMessage = err.response?.data?.error || err.response?.data?.message || 'Failed to update blog.';
+            toast.error(errorMessage);
         } finally {
             setUpdating(false);
         }
     };
 
-    if (loading || !blog) return <Spinner></Spinner>
+    if (loading || !blog) return <Spinner />;
 
     return (
-        <div className="max-w-2xl mx-auto bg-white p-8 shadow rounded-lg mt-10">
-            <h2 className="text-2xl font-bold mb-6">Edit Blog</h2>
+        <div className="max-w-3xl mx-auto bg-white p-8 shadow rounded-lg mt-10">
+            <h2 className="text-3xl font-bold mb-6 text-gray-800 text-center">Edit Blog Post</h2>
 
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
-                    <label className="font-medium">Title</label>
+                    <label htmlFor="title" className="block text-gray-700 font-medium mb-2">Title</label>
                     <input
+                        id="title"
                         type="text"
                         name="title"
-                        value={blog.title}
-                        onChange={handleUpdate}
-                        className="input input-bordered w-full"
+                        value={blog.title || ''} 
+                        onChange={handleInputChange}
+                        className="input input-bordered w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Enter blog title"
                         required
                     />
                 </div>
-
-                <select
-                    name="category"
-                    className="select select-bordered w-full"
-                    value={blog.category}
-                    onChange={handleUpdate}
-                >
-                    <option value="" disabled>Select Category</option>
-                    <option value="Life">Life</option>
-                    <option value="Health">Health</option>
-                    <option value="Retirement">Retirement</option>
-                    <option value="Investment">Investment</option>
-                </select>
-
+                <div>
+                    <label htmlFor="summary" className="block text-gray-700 font-medium mb-2">Summary (for blog card)</label>
+                    <textarea
+                        id="summary"
+                        name="summary"
+                        value={summaryValue}
+                        onChange={handleSummaryChange}
+                        rows="3"
+                        className="textarea textarea-bordered w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder={`Provide a brief summary for the blog card (max ${maxSummaryChars} characters)`}
+                        required
+                    />
+                    <p className="text-right text-sm text-gray-500 mt-1">
+                        {summaryValue.length}/{maxSummaryChars} characters
+                    </p>
+                </div>
 
                 <div>
-                    <label className="font-medium">Description</label>
+                    <label htmlFor="content" className="block text-gray-700 font-medium mb-2">Content</label>
                     <textarea
-                        name="description"
-                        value={blog.description}
-                        onChange={handleUpdate}
-                        rows="4"
-                        className="textarea textarea-bordered w-full"
+                        id="content"
+                        name="content"
+                        value={blog.content || ''}
+                        onChange={handleInputChange}
+                        rows="10"
+                        className="textarea textarea-bordered w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Write your blog content here..."
                         required
                     />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                    <div>
-                        <label className="font-medium">Premium (৳)</label>
-                        <input
-                            type="number"
-                            name="premium"
-                            value={blog.premium}
-                            onChange={handleUpdate}
-                            className="input input-bordered w-full"
-                            required
-                        />
-                    </div>
-
-                    <div>
-                        <label className="font-medium">Coverage Amount (৳)</label>
-                        <input
-                            type="number"
-                            name="coverageAmount"
-                            value={blog.coverageAmount}
-                            onChange={handleUpdate}
-                            className="input input-bordered w-full"
-                            required
-                        />
-                    </div>
                 </div>
 
                 <div>
@@ -157,12 +155,12 @@ const EditBlog = () => {
 
                 <button
                     type="submit"
-                    className="btn bg-sky-700 hover:bg-sky-800 text-white w-full mt-4 flex justify-center items-center gap-2"
+                    className="btn bg-sky-700 hover:bg-sky-800 text-white w-full py-3 rounded-md transition duration-300 ease-in-out flex justify-center items-center gap-2"
                     disabled={updating}
                 >
                     {updating ? (
                         <>
-                            <span className="loading loading-spinner loading-sm"></span> Updating...
+                            <span className="loading loading-spinner loading-sm"></span> Updating Blog...
                         </>
                     ) : (
                         'Update Blog'

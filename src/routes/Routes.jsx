@@ -30,13 +30,13 @@ import PolicyDetails from "../pages/PolicyDetails";
 import QuotePage from "../pages/QuotePage";
 import ApplicationFormPage from "../pages/ApplicationFormPage";
 import Blogs from "../pages/Blogs";
-import BlogDetails from "../pages/BlogDetails";
 import FAQs from "../pages/FAQs";
 import Agents from "../pages/Agents";
 import DashboardOverview from "../pages/dashboard/DashboardOverview";
 import ApplyAsAgent from "../pages/dashboard/customer/ApplyAsAgent";
 import EditBlog from "../pages/dashboard/agent/EditBlog";
 import ManageClaims from "../pages/dashboard/Admin/ManageClaims";
+import BlogDetails from "../pages/BlogDetails";
 
 
 export const router = createBrowserRouter([
