@@ -51,9 +51,8 @@ const PopularPolicies = () => {
             <div className="container mx-auto px-4">
                 <div className="text-center mb-12">
                     <h2 className="text-4xl font-bold text-gray-900 mb-4">
-                        Our <span className="text-sky-600">Popular</span> Policies
+                        Our Popular<span className="text-sky-600"> Policies</span> 
                     </h2>
-                    <div className="w-20 h-1 bg-sky-500 mx-auto mb-6"></div>
                     <p className="text-lg text-gray-600 max-w-2xl mx-auto">
                         Discover the most trusted insurance solutions chosen by our customers
                     </p>

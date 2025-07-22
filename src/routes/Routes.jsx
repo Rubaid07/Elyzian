@@ -31,7 +31,6 @@ import QuotePage from "../pages/QuotePage";
 import ApplicationFormPage from "../pages/ApplicationFormPage";
 import Blogs from "../pages/Blogs";
 import FAQs from "../pages/FAQs";
-import Agents from "../pages/Agents";
 import DashboardOverview from "../pages/dashboard/DashboardOverview";
 import ApplyAsAgent from "../pages/dashboard/customer/ApplyAsAgent";
 import EditBlog from "../pages/dashboard/agent/EditBlog";
@@ -59,10 +58,6 @@ export const router = createBrowserRouter([
       {
         path: 'blogs',
         Component: Blogs
-      },
-      {
-        path: 'agents',
-        Component: Agents
       },
       {
         path: 'blog-details/:id',

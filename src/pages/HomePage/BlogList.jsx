@@ -2,11 +2,12 @@ import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import Spinner from '../../component/Loader/Spinner';
-import { FaCalendarAlt, FaArrowRight } from 'react-icons/fa';
+import { FaCalendarAlt, FaArrowRight, FaEye } from 'react-icons/fa';
 
 const BlogList = () => {
     const [blogs, setBlogs] = useState([]);
     const [loading, setLoading] = useState(true);
+    console.log(blogs);
 
     useEffect(() => {
         const fetchBlogs = async () => {
@@ -71,13 +72,19 @@ const BlogList = () => {
                             )}
                             
                             <div className="p-6">
-                                <div className="flex items-center text-gray-500 text-sm mb-3">
-                                    <FaCalendarAlt className="mr-2 text-blue-500" />
+                                <div className="flex items-center justify-between text-gray-500 text-sm mb-3">
+                                   <div className='flex items-center'>
+                                     <FaCalendarAlt className="mr-2 text-blue-500" />
                                     {new Date(blog.createdAt).toLocaleDateString('en-US', {
                                         year: 'numeric',
                                         month: 'long',
                                         day: 'numeric'
                                     })}
+                                   </div>
+                                    <div className="flex items-center">
+                                                        <FaEye className="mr-1 text-blue-500" />
+                                                        <span>{blog.totalVisits || 0} views</span>
+                                                      </div>
                                 </div>
                                 
                                 <h3 className="text-xl font-bold text-gray-900 mb-3 leading-tight">
@@ -90,7 +97,7 @@ const BlogList = () => {
                                 
                                 <Link 
                                     to={`/blog-details/${blog._id}`}
-                                    className="inline-flex items-center text-blue-600 font-medium hover:text-blue-800 transition-colors"
+                                    className="inline-flex items-center text-sky-600 font-medium hover:text-sky-700 transition-colors"
                                 >
                                     Read More <FaArrowRight className="ml-2" />
                                 </Link>
@@ -98,17 +105,14 @@ const BlogList = () => {
                         </div>
                     ))}
                 </div>
-
-                {blogs.length > 6 && (
                     <div className="text-center mt-12">
                         <Link 
                             to="/blogs" 
-                            className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg font-medium hover:from-blue-700 hover:to-indigo-700 transition-all shadow-md hover:shadow-lg"
+                            className="inline-flex items-center px-6 py-3 bg-sky-600 text-white rounded-lg font-medium hover:bg-sky-700 transition shadow-md hover:shadow-lg"
                         >
                             View All Articles
                         </Link>
                     </div>
-                )}
             </div>
         </section>
     );
