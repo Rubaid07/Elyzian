@@ -5,6 +5,9 @@ import useAxiosSecure from '../../../hooks/useAxiosSecure';
 import { AuthContext } from '../../../context/AuthContext';
 import toast from 'react-hot-toast';
 import Swal from 'sweetalert2';
+import { FaCreditCard, FaLock, FaCheckCircle } from 'react-icons/fa';
+import { MdPayment, MdError } from 'react-icons/md';
+
 const PaymentForm = () => { 
     const stripe = useStripe();
     const elements = useElements();
@@ -17,6 +20,7 @@ const PaymentForm = () => {
     const [error, setError] = useState(null);
     const [clientSecret, setClientSecret] = useState('');
     const [transactionId, setTransactionId] = useState('');
+    const [processing, setProcessing] = useState(false);
     const premiumAmount = statePolicyData?.premiumAmount || 0;
     const amountForStripe = parseFloat(premiumAmount);
 
@@ -24,63 +28,58 @@ const PaymentForm = () => {
         if (amountForStripe > 0) {
             axiosSecure.post('/create-payment-intent', { price: amountForStripe })
                 .then(res => {
-                    console.log(res.data.clientSecret);
                     setClientSecret(res.data.clientSecret);
                 })
                 .catch(err => {
                     console.error("Error creating payment intent:", err);
                     setError("Failed to initialize payment. Please try again.");
+                    toast.error('Payment initialization failed');
                 });
         }
     }, [axiosSecure, amountForStripe]);
 
     const handleSubmit = async (event) => {
         event.preventDefault();
+        setProcessing(true);
+        setError(null);
 
         if (!stripe || !elements) {
+            setProcessing(false);
             return;
         }
 
         const card = elements.getElement(CardElement);
 
         if (card === null) {
+            setProcessing(false);
             return;
         }
 
-        const { error, paymentMethod } = await stripe.createPaymentMethod({
-            type: 'card',
-            card,
-        });
-
-        if (error) {
-            console.log('Payment method error', error);
-            setError(error.message);
-        } else {
-            console.log('Payment method', paymentMethod);
-            setError('');
-        }
-        const { paymentIntent, error: confirmError } = await stripe.confirmCardPayment(clientSecret, {
-            payment_method: {
-                card: card,
-                billing_details: {
-                    email: user?.email || 'anonymous',
-                    name: user?.displayName || 'anonymous',
-                },
-            },
-        });
-
-        if (confirmError) {
-            console.log('Confirm error', confirmError);
-            setError(confirmError.message);
-            Swal.fire({
-                icon: 'error',
-                title: 'Payment Failed!',
-                text: confirmError.message || 'There was an issue processing your payment.',
+        try {
+            const { error: paymentMethodError, paymentMethod } = await stripe.createPaymentMethod({
+                type: 'card',
+                card,
             });
-        } else {
-            console.log('Payment Intent', paymentIntent);
+
+            if (paymentMethodError) {
+                throw paymentMethodError;
+            }
+
+            const { paymentIntent, error: confirmError } = await stripe.confirmCardPayment(clientSecret, {
+                payment_method: {
+                    card: card,
+                    billing_details: {
+                        email: user?.email || 'anonymous',
+                        name: user?.displayName || 'anonymous',
+                    },
+                },
+            });
+
+            if (confirmError) {
+                throw confirmError;
+            }
+
             if (paymentIntent.status === 'succeeded') {
-                console.log('Transaction Id', paymentIntent.id);
                 setTransactionId(paymentIntent.id);
                 const payment = {
                     email: user?.email,
@@ -93,67 +92,162 @@ const PaymentForm = () => {
                     paymentDate: new Date(),
                     status: 'Paid',
                 };
-                console.log('Payment data being sent:', payment);
-                try {
-                    const res = await axiosSecure.post('/payments', payment);
-                    console.log('Payment saved to DB and application status updated:', res.data);
-                    if (res.data.transactionResult?.insertedId && res.data.applicationUpdateResult?.matchedCount > 0) {
-                        Swal.fire({
-                            position: "top-end",
-                            icon: "success",
-                            title: "Payment Successful!",
-                            showConfirmButton: false,
-                            timer: 1500
-                        });
-                        toast.success('Policy status updated to Paid!');
-                        navigate('/dashboard/payment-status');
-                    } else {
-                         Swal.fire({
-                            icon: 'warning',
-                            title: 'Payment Saved, But Status Not Fully Updated',
-                            text: res.data.message || 'There was an issue updating the policy status. Please check dashboard.',
-                        });
-                    }
-                } catch (error) {
-                    console.error('Error saving payment to DB or updating policy status:', error);
-                    toast.error('Payment failed or status update error!');
+
+                const res = await axiosSecure.post('/payments', payment);
+                
+                if (res.data.transactionResult?.insertedId && res.data.applicationUpdateResult?.matchedCount > 0) {
                     Swal.fire({
-                        icon: 'error',
-                        title: 'Payment Processing Error!',
-                        text: error.response?.data?.message || 'An unexpected error occurred while saving payment or updating status.',
+                        position: "center",
+                        icon: "success",
+                        title: "Payment Successful!",
+                        html: `
+                            <div class="text-center">
+                                <div class="text-green-500 text-5xl mb-4">
+                                    <FaCheckCircle />
+                                </div>
+                                <p class="text-lg">Your payment of BDT ${amountForStripe.toLocaleString()} was successful!</p>
+                                <p class="text-sm text-gray-600 mt-2">Transaction ID: ${paymentIntent.id}</p>
+                            </div>
+                        `,
+                        showConfirmButton: true,
+                        confirmButtonText: 'Go to Dashboard',
+                        willClose: () => navigate('/dashboard/payment-status')
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Payment Processed',
+                        text: 'Your payment was successful but there was an issue updating your policy status.',
+                        confirmButtonText: 'Continue',
+                        willClose: () => navigate('/dashboard/payment-status')
                     });
                 }
             }
+        } catch (error) {
+            console.error('Payment error:', error);
+            setError(error.message);
+            Swal.fire({
+                icon: "error",
+                title: "Payment Failed",
+                html: `
+                    <div class="text-center">
+                        <div class="text-red-500 text-5xl mb-4">
+                            <MdError />
+                        </div>
+                        <p class="text-lg">${error.message || 'Payment could not be processed'}</p>
+                        <p class="text-sm text-gray-600 mt-2">Please try again or contact support</p>
+                    </div>
+                `,
+                confirmButtonText: 'Try Again'
+            });
+        } finally {
+            setProcessing(false);
         }
     };
-    return (
-        <div>
-            <form onSubmit={handleSubmit}>
-                <h3 className="text-xl font-bold mb-4">Pay for: {statePolicyData?.policyName || 'Policy'}</h3>
-                <p className="mb-2">Premium Amount: ৳ {statePolicyData?.premiumAmount?.toLocaleString() || 'N/A'}</p>
-                <p className="mb-4">Payment Frequency: {statePolicyData?.paymentFrequency || 'N/A'}</p>
 
-                <CardElement
-                    options={{
-                        style: {
-                            base: {
-                                fontSize: '16px',
-                                color: '#424770',
-                                '::placeholder': {
-                                    color: '#aab7c4',
+    return (
+        <div className="max-w-2xl mx-auto p-6 bg-white rounded-xl shadow-md">
+            <div className="mb-8 text-center">
+                <h2 className="text-2xl font-bold text-gray-800 mb-2">Complete Your Payment</h2>
+                <p className="text-gray-600">Secure payment processed through Stripe</p>
+            </div>
+
+            <div className="bg-gray-50 p-6 rounded-lg mb-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 ">
+                    Policy Payment Summary
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <p className="text-sm text-gray-500">Policy Name</p>
+                        <p className="font-medium">{statePolicyData?.policyName || 'N/A'}</p>
+                    </div>
+                    <div>
+                        <p className="text-sm text-gray-500">Payment Frequency</p>
+                        <p className="font-medium">{statePolicyData?.paymentFrequency || 'N/A'}</p>
+                    </div>
+                    <div>
+                        <p className="text-sm text-gray-500">Premium Amount</p>
+                        <p className="font-medium text-blue-600">BDT {statePolicyData?.premiumAmount?.toLocaleString() || 'N/A'}</p>
+                    </div>
+                    <div>
+                        <p className="text-sm text-gray-500">Application ID</p>
+                        <p className="font-mono text-sm">{urlApplicationId || 'N/A'}</p>
+                    </div>
+                </div>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-6">
+                <div>
+                    <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                        <FaCreditCard className="mr-2 text-blue-600" />
+                        Card Details
+                    </h3>
+                    <div className="border border-gray-200 rounded-lg p-4">
+                        <CardElement
+                            options={{
+                                style: {
+                                    base: {
+                                        fontSize: '16px',
+                                        color: '#424770',
+                                        '::placeholder': {
+                                            color: '#aab7c4',
+                                        },
+                                        padding: '10px',
+                                    },
+                                    invalid: {
+                                        color: '#e53e3e',
+                                    },
                                 },
-                            },
-                            invalid: {
-                                color: '#9e2146',
-                            },
-                        },
-                    }}
-                />
-                <button className="btn btn-sm btn-primary my-4" type="submit" disabled={!stripe || !clientSecret}>
-                    Pay BDT {premiumAmount}
-                </button>
-                <p className="text-red-600">{error}</p>
-                {transactionId && <p className="text-green-600">Your transaction Id: {transactionId}</p>}
+                                hidePostalCode: true
+                            }}
+                        />
+                    </div>
+                </div>
+
+                {error && (
+                    <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
+                        <div className="flex items-center text-red-700">
+                            <MdError className="mr-2" />
+                            <span>{error}</span>
+                        </div>
+                    </div>
+                )}
+
+                {transactionId && (
+                    <div className="bg-green-50 border-l-4 border-green-500 p-4 rounded">
+                        <div className="flex items-center text-green-700">
+                            <FaCheckCircle className="mr-2" />
+                            <span>Payment successful! Transaction ID: {transactionId}</span>
+                        </div>
+                    </div>
+                )}
+
+                <div className="pt-4">
+                    <button
+                        className={`w-full btn btn-primary py-3 px-6 rounded-lg font-medium shadow-sm ${processing ? 'opacity-75 cursor-not-allowed' : ''}`}
+                        type="submit"
+                        disabled={!stripe || !clientSecret || processing}
+                    >
+                        {processing ? (
+                            <span className="flex items-center justify-center">
+                                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Processing...
+                            </span>
+                        ) : (
+                            <span className="flex items-center justify-center">
+                                <FaLock className="mr-2" />
+                                Pay BDT {premiumAmount.toLocaleString()}
+                            </span>
+                        )}
+                    </button>
+                    <p className="text-xs text-gray-500 mt-3 flex items-center">
+                        <FaLock className="mr-1" />
+                        Your payment is secured with 256-bit encryption
+                    </p>
+                </div>
             </form>
         </div>
     );

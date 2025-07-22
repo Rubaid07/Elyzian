@@ -22,13 +22,11 @@ const Payment = () => {
     const policyData = { policyId, premiumAmount, paymentFrequency, policyName };
 
     return (
-        <div className="container mx-auto px-4 py-8 flex justify-center items-center min-h-[calc(100vh-200px)]">
-            <div className="w-full max-w-lg bg-white shadow-xl rounded-lg p-6">
-                <h1 className="text-3xl font-bold text-center mb-8 text-gray-800">Complete Your Payment</h1>
+        <div className="container mx-auto md:px-4 py-8 flex justify-center items-center min-h-[calc(100vh-200px)]">
+           
                 <Elements stripe={stripePromise}>
                     <PaymentForm policyData={policyData}></PaymentForm>
                 </Elements>
-            </div>
         </div>
     );
 };

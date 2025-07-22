@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import useAxiosSecure from '../../../hooks/useAxiosSecure';
 import Spinner from '../../../component/Loader/Spinner';
-import { FaTimes, FaEye, FaCalendarAlt, FaUserTie, FaIdCard, FaFileAlt, FaMoneyBillWave } from 'react-icons/fa'; 
+import { FaTimes, FaEye, FaCalendarAlt, FaUserTie, FaIdCard, FaFileAlt, FaMoneyBillWave } from 'react-icons/fa';
 import Swal from 'sweetalert2';
 import { RiFileUserFill } from 'react-icons/ri';
 import { MdAttachMoney, MdEmail, MdHome, MdMedicalServices } from "react-icons/md";
@@ -47,15 +47,15 @@ const ManageApplications = () => {
     if (confirm.isConfirmed) {
       try {
         const res = await axiosSecure.patch(`/admin/policy-applications/${id}`, { status: 'rejected' });
-        if(res.data.modifiedCount > 0) {
-            setApplications(prev => prev.map(app => app._id === id ? { ...app, status: 'rejected' } : app));
-            Swal.fire({
-              title: 'Rejected!',
-              text: 'The application has been rejected.',
-              icon: 'success'
-            });
+        if (res.data.modifiedCount > 0) {
+          setApplications(prev => prev.map(app => app._id === id ? { ...app, status: 'rejected' } : app));
+          Swal.fire({
+            title: 'Rejected!',
+            text: 'The application has been rejected.',
+            icon: 'success'
+          });
         } else {
-            Swal.fire('Info', 'Application already rejected or no changes made.', 'info');
+          Swal.fire('Info', 'Application already rejected or no changes made.', 'info');
         }
       } catch (err) {
         console.error(err);
@@ -77,13 +77,13 @@ const ManageApplications = () => {
       const res = await axiosSecure.patch(`/admin/policy-applications/${appId}`, {
         assignedAgent: agentEmail
       });
-      if(res.data.modifiedCount > 0) {
-          setApplications(prev =>
-            prev.map(app => app._id === appId ? { ...app, assignedAgent: agentEmail } : app)
-          );
-          Swal.fire('Assigned!', 'Agent assigned successfully.', 'success');
+      if (res.data.modifiedCount > 0) {
+        setApplications(prev =>
+          prev.map(app => app._id === appId ? { ...app, assignedAgent: agentEmail } : app)
+        );
+        Swal.fire('Assigned!', 'Agent assigned successfully.', 'success');
       } else {
-          Swal.fire('Info', 'Agent already assigned or no changes made.', 'info');
+        Swal.fire('Info', 'Agent already assigned or no changes made.', 'info');
       }
     } catch (err) {
       console.error(err);
@@ -141,9 +141,6 @@ const ManageApplications = () => {
                   <tr key={app._id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        <div className="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                          <RiFileUserFill className="text-blue-600" />
-                        </div>
                         <div className="ml-4">
                           <div className="text-sm font-medium text-gray-900">{app.applicantName}</div>
                           <div className="text-sm text-gray-500">{app.email}</div>
@@ -161,20 +158,19 @@ const ManageApplications = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        app.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                        app.status === 'approved' ? 'bg-green-100 text-green-800' :
-                        app.status === 'rejected' ? 'bg-red-100 text-red-800' :
-                        app.status === 'paid' ? 'bg-blue-100 text-blue-800' :
-                        'bg-gray-100 text-gray-800'
-                      }`}>
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${app.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                          app.status === 'approved' ? 'bg-green-100 text-green-800' :
+                            app.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                              app.status === 'paid' ? 'bg-blue-100 text-blue-800' :
+                                'bg-gray-100 text-gray-800'
+                        }`}>
                         {app.status}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {(app.status === 'pending' || !app.assignedAgent) && app.status !== 'rejected' ? (
                         <select
-                          className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+                          className="w-full pl-3 pr-10 py-2 text-base outline-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
                           defaultValue={app.assignedAgent || ""}
                           onChange={(e) => handleAssignAgent(app._id, e.target.value)}
                         >
@@ -199,18 +195,18 @@ const ManageApplications = () => {
                       <div className="flex justify-end space-x-2">
                         <button
                           onClick={() => setSelectedApp(app)}
-                          className="text-blue-600 hover:text-blue-900 p-1 rounded hover:bg-blue-50"
+                          className="flex items-center gap-2 btn px-3 bg-blue-500 hover:bg-blue-600 text-white"
                           title="View Details"
                         >
-                          <FaEye />
+                          <FaEye /> <p>View</p>
                         </button>
-                        {app.status === 'pending' && (
+                        {app.status === 'pending' && !app.assignedAgent && (
                           <button
                             onClick={() => handleReject(app._id)}
-                            className="text-red-600 hover:text-red-900 p-1 rounded hover:bg-red-50"
+                            className="bg-red-500 text-white hover:bg-red-600 btn flex items-center gap-2 px-3"
                             title="Reject Application"
                           >
-                            <FaTimes />
+                            <FaTimes /><p>Reject</p>
                           </button>
                         )}
                       </div>
@@ -227,14 +223,14 @@ const ManageApplications = () => {
             <div className="modal-box max-w-3xl w-full max-h-[90vh] p-0 overflow-hidden">
               <div className="bg-gradient-to-r from-sky-600 to-blue-700 p-6 text-white">
                 <h3 className="font-bold text-xl">Application Details</h3>
-                <button 
+                <button
                   className="btn btn-sm btn-circle absolute right-2 top-2 bg-white/10 border-none hover:bg-white/20"
                   onClick={() => setSelectedApp(null)}
                 >
                   ✕
                 </button>
               </div>
-              
+
               <div className="p-6 overflow-y-auto" style={{ maxHeight: 'calc(90vh - 150px)' }}>
                 <div className="grid grid-cols-1  gap-6">
                   <div className="bg-gray-50 p-4 rounded-lg">
@@ -258,9 +254,9 @@ const ManageApplications = () => {
                     <div className="space-y-3">
                       <Details icon={<FaFileAlt />} label="Policy Name" value={selectedApp.policyName} />
                       <Details icon={<FaFileAlt />} label="Policy ID" value={selectedApp.policyId} />
-                      <Details icon={<FaCalendarAlt />} label="Applied On" 
+                      <Details icon={<FaCalendarAlt />} label="Applied On"
                         value={new Date(selectedApp.appliedAt).toLocaleString()} />
-                      <Details icon={<FaCalendarAlt />} label="Last Updated" 
+                      <Details icon={<FaCalendarAlt />} label="Last Updated"
                         value={selectedApp.updatedAt ? new Date(selectedApp.updatedAt).toLocaleString() : 'N/A'} />
                     </div>
                   </div>
@@ -271,11 +267,11 @@ const ManageApplications = () => {
                       Health Information
                     </h4>
                     <div className="space-y-3">
-                      <Details icon={<MdMedicalServices />} label="Consumes Alcohol" 
+                      <Details icon={<MdMedicalServices />} label="Consumes Alcohol"
                         value={selectedApp.consumesAlcohol ? 'Yes' : 'No'} />
-                      <Details icon={<MdMedicalServices />} label="Hospitalized Before" 
+                      <Details icon={<MdMedicalServices />} label="Hospitalized Before"
                         value={selectedApp.hasBeenHospitalized ? 'Yes' : 'No'} />
-                      <Details icon={<MdMedicalServices />} label="Pre-existing Conditions" 
+                      <Details icon={<MdMedicalServices />} label="Pre-existing Conditions"
                         value={selectedApp.hasPreExistingConditions ? 'Yes' : 'No'} />
                     </div>
                   </div>
@@ -286,13 +282,13 @@ const ManageApplications = () => {
                       Payment & Nominee
                     </h4>
                     <div className="space-y-3">
-                      <Details icon={<RiFileUserFill />} label="Nominee Name" 
+                      <Details icon={<RiFileUserFill />} label="Nominee Name"
                         value={selectedApp.nomineeName || 'N/A'} />
-                      <Details icon={<RiFileUserFill />} label="Nominee Relationship" 
+                      <Details icon={<RiFileUserFill />} label="Nominee Relationship"
                         value={selectedApp.nomineeRelationship || 'N/A'} />
-                      <Details icon={<FaMoneyBillWave />} label="Premium Amount" 
+                      <Details icon={<FaMoneyBillWave />} label="Premium Amount"
                         value={`BDT ${selectedApp.premiumAmount?.toLocaleString()}`} />
-                      <Details icon={<FaMoneyBillWave />} label="Payment Frequency" 
+                      <Details icon={<FaMoneyBillWave />} label="Payment Frequency"
                         value={selectedApp.paymentFrequency} />
                     </div>
                   </div>
@@ -303,13 +299,12 @@ const ManageApplications = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <span className="block text-sm font-medium text-gray-500">Current Status</span>
-                      <span className={`mt-1 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                        selectedApp.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                        selectedApp.status === 'approved' ? 'bg-green-100 text-green-800' :
-                        selectedApp.status === 'rejected' ? 'bg-red-100 text-red-800' :
-                        selectedApp.status === 'paid' ? 'bg-blue-100 text-blue-800' :
-                        'bg-gray-100 text-gray-800'
-                      }`}>
+                      <span className={`mt-1 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${selectedApp.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                          selectedApp.status === 'approved' ? 'bg-green-100 text-green-800' :
+                            selectedApp.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                              selectedApp.status === 'paid' ? 'bg-blue-100 text-blue-800' :
+                                'bg-gray-100 text-gray-800'
+                        }`}>
                         {selectedApp.status}
                       </span>
                     </div>
@@ -325,7 +320,7 @@ const ManageApplications = () => {
               </div>
 
               <div className="modal-action sticky bottom-0 bg-white p-4 border-t border-gray-200 flex justify-end">
-                <button 
+                <button
                   onClick={() => setSelectedApp(null)}
                   className="btn btn-ghost hover:bg-gray-100"
                 >
