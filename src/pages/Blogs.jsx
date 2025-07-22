@@ -37,7 +37,7 @@ const Blogs = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Spinner className="w-16 h-16 text-blue-600" />
+        <Spinner className="w-16 h-16 text-sky-600" />
       </div>
     );
   }
@@ -55,8 +55,8 @@ const Blogs = () => {
   if (blogs.length === 0) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="bg-blue-50 border-l-4 border-blue-500 p-4 max-w-md">
-          <p className="text-blue-700 font-medium text-xl">No blogs available at the moment. Check back later!</p>
+        <div className="bg-sky-50 border-l-4 border-sky-500 p-4 max-w-md">
+          <p className="text-sky-700 font-medium text-xl">No blogs available at the moment. Check back later!</p>
         </div>
       </div>
     );
@@ -112,7 +112,7 @@ const Blogs = () => {
                       {blog.creatorName || 'Unknown Author'}
                     </p>
                     <div className="flex items-center text-xs text-gray-500">
-                      <FaCalendarAlt className="mr-1 text-blue-500" />
+                      <FaCalendarAlt className="mr-1 text-sky-500" />
                       <span>
                         {blog.createdAt ? format(new Date(blog.createdAt), 'MMM d, yyyy') : 'N/A'}
                       </span>
@@ -122,12 +122,12 @@ const Blogs = () => {
 
                 <div className="flex items-center justify-between text-sm text-gray-500 border-t border-gray-100 pt-4">
                   <div className="flex items-center">
-                    <FaEye className="mr-1 text-blue-500" />
+                    <FaEye className="mr-1 text-sky-500" />
                     <span>{blog.totalVisits || 0} views</span>
                   </div>
                   <Link 
                     to={`/blog-details/${blog._id}`}
-                    className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium transition-colors"
+                    className="inline-flex items-center text-sky-600 hover:text-sky-700 font-medium transition-colors"
                   >
                     Read more <FaArrowRight className="ml-1" />
                   </Link>
