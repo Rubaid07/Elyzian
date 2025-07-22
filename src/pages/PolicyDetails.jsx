@@ -2,6 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router';
 import useAxiosPublic from '../hooks/useAxiosPublic';
 import Spinner from '../component/Loader/Spinner';
+import { FaShieldAlt, FaUser, FaCalendarAlt, FaMoneyBillWave, FaArrowLeft, FaPhoneAlt, FaChartLine } from 'react-icons/fa';
+import { IoMdTime } from 'react-icons/io';
+import { GiHealthIncrease } from 'react-icons/gi';
 
 const PolicyDetails = () => {
     const { id } = useParams();
@@ -19,7 +22,7 @@ const PolicyDetails = () => {
                 setPolicy(res.data);
             } catch (err) {
                 console.error('Error fetching policy details:', err);
-                setError('Failed to load policy details. It might not exist or there was a server error.');
+                setError('Failed to load policy details. Please try again later.');
             } finally {
                 setLoading(false);
             }
@@ -33,75 +36,129 @@ const PolicyDetails = () => {
         }
     }, [id, axiosPublic]);
 
-    if (loading) {
-        return <Spinner />;
-    }
+    if (loading) return <Spinner></Spinner>
 
     if (error) {
         return (
-            <div className="text-center text-red-600 p-8 bg-white rounded-lg shadow-md max-w-md mx-auto mt-10">
-                <p className="text-lg mb-4">{error}</p>
-                <Link to="/policies" className="btn btn-primary bg-sky-600 hover:bg-sky-700 text-white">
-                    Back to All Policies
-                </Link>
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="bg-white rounded-xl shadow-lg p-8 max-w-md text-center">
+                    <div className="bg-red-50 text-red-700 p-4 rounded-lg mb-6">
+                        <h3 className="text-xl font-bold mb-2">Error Loading Policy</h3>
+                        <p>{error}</p>
+                    </div>
+                    <Link 
+                        to="/policies" 
+                        className="inline-flex items-center px-6 py-3 bg-sky-600 text-white rounded-lg font-medium hover:bg-sky-700 transition-all shadow-md hover:shadow-lg"
+                    >
+                        <FaArrowLeft className="mr-2" /> Back to All Policies
+                    </Link>
+                </div>
             </div>
         );
     }
 
     return (
-        <div className="container mx-auto p-6 bg-white rounded-lg shadow-md max-w-3xl mt-8 mb-8">
-            <div className="text-center mb-8">
-                <h1 className="text-4xl font-extrabold text-gray-900 mb-2">{policy.policyTitle}</h1>
-                <p className="text-lg text-sky-700 font-semibold">Category: {policy.category}</p>
-            </div>
-
-            {policy.policyImage && (
-                <div className="mb-8 flex justify-center">
-                    <img
-                        src={policy.policyImage}
-                        alt={policy.policyTitle}
-                        className="w-full max-h-96 object-cover rounded-lg shadow-lg"
-                    />
+        <div className="bg-gradient-to-b from-gray-50 to-white min-h-screen py-12 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-4xl mx-auto">
+                <div className="mb-8">
+                    <Link 
+                        to="/policies" 
+                        className="inline-flex items-center text-sky-600 hover:text-sky-800 font-medium transition-colors"
+                    >
+                        <FaArrowLeft className="mr-2" /> All Policies
+                    </Link>
                 </div>
-            )}
 
-            <div className="prose max-w-none text-gray-700 leading-relaxed mb-8">
-                <h2 className="text-2xl font-bold text-gray-800 mb-3">Description</h2>
-                <p>{policy.description}</p>
-            </div>
+                <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
+                    {policy.policyImage && (
+                        <div className="relative h-80 w-full overflow-hidden">
+                            <img
+                                src={policy.policyImage}
+                                alt={policy.policyTitle}
+                                className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                            />
+                            <div className="absolute top-4 right-4 bg-sky-600 text-white px-3 py-1 rounded-full text-sm font-bold">
+                                {policy.category}
+                            </div>
+                        </div>
+                    )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-gray-800 mb-8">
-                <div>
-                    <h3 className="text-xl font-semibold text-gray-800 mb-2">Key Features</h3>
-                    <ul className="list-disc list-inside space-y-1">
-                        <li><strong>Minimum Age:</strong> {policy.minimumAge} years</li>
-                        <li><strong>Maximum Age:</strong> {policy.maximumAge} years</li>
-                        <li><strong>Coverage Range:</strong> ${policy.coverageRange}</li>
-                        <li><strong>Duration Options:</strong> {policy.durationOptions}</li>
-                        <li><strong>Base Premium Rate:</strong> ${policy.basePremiumRate}</li>
-                    </ul>
+                    <div className="p-6 md:p-8">
+                        <div className="text-center mb-8">
+                            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">{policy.policyTitle}</h1>
+                            <p className="text-lg text-sky-600 font-medium">{policy.category} Insurance</p>
+                        </div>
+
+                        <div className="prose max-w-none text-gray-700 leading-relaxed mb-8">
+                            <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                                <FaShieldAlt className="text-sky-500 mr-2" /> Policy Overview
+                            </h2>
+                            <p className="text-lg">{policy.description}</p>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+                            <div className="bg-sky-50 rounded-lg p-6">
+                                <h3 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                                    <GiHealthIncrease className="text-sky-500 mr-2" /> Coverage Details
+                                </h3>
+                                <ul className="space-y-3">
+                                    <li className="flex items-start">
+                                        <FaUser className="text-sky-500 mt-1 mr-2 flex-shrink-0" />
+                                        <span><strong>Age Range:</strong> {policy.minimumAge} - {policy.maximumAge} years</span>
+                                    </li>
+                                    <li className="flex items-start">
+                                        <FaShieldAlt className="text-sky-500 mt-1 mr-2 flex-shrink-0" />
+                                        <span><strong>Coverage Amount:</strong> ${policy.coverageRange?.toLocaleString()}</span>
+                                    </li>
+                                    <li className="flex items-start">
+                                        <FaChartLine className="text-sky-500 mt-1 mr-2 flex-shrink-0" />
+                                        <span><strong>Premium Rate:</strong> ${policy.basePremiumRate}/month</span>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div className="bg-sky-50 rounded-lg p-6">
+                                <h3 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                                    <IoMdTime className="text-sky-500 mr-2" /> Policy Terms
+                                </h3>
+                                <ul className="space-y-3">
+                                    <li className="flex items-start">
+                                        <FaCalendarAlt className="text-sky-500 mt-1 mr-2 flex-shrink-0" />
+                                        <span><strong>Duration Options:</strong> {policy.durationOptions}</span>
+                                    </li>
+                                    <li className="flex items-start">
+                                        <FaMoneyBillWave className="text-sky-500 mt-1 mr-2 flex-shrink-0" />
+                                        <span><strong>Payment Frequency:</strong> Monthly/Annual</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row justify-center gap-4 mt-8">
+                            <Link
+                                to={`/quote/${policy._id}`}
+                                className="flex-1 text-center bg-sky-600 hover:bg-sky-700 text-white font-medium py-3 px-6 rounded-lg transition-all duration-300 shadow-md hover:shadow-lg"
+                            >
+                                Get Instant Quote
+                            </Link>
+                            <button
+                                onClick={() => alert('Agent consultation feature coming soon!')}
+                                className="flex-1 text-center border-2 border-sky-600 text-sky-600 hover:bg-sky-600 hover:text-white font-medium py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center"
+                            >
+                                <FaPhoneAlt className="mr-2" /> Talk to Agent
+                            </button>
+                        </div>
+                    </div>
                 </div>
-            </div>
 
-            <div className="flex justify-center gap-4 mt-8">
-                <Link
-                    to={`/quote/${policy._id}`}
-                    className="btn bg-sky-600 hover:bg-sky-700 text-white text-lg px-6 py-3 rounded-full transition duration-200"
-                >
-                    Get Quote
-                </Link>
-                <button
-                    onClick={() => alert('Agent consultation feature coming soon!')}
-                    className="btn btn-outline btn-secondary border-sky-600 text-sky-600 hover:bg-sky-600 hover:text-white text-lg px-6 py-3 rounded-full  transition duration-200"
-                >
-                    Book Agent Consultation
-                </button>
-            </div>
-
-            <div className="text-center mt-8">
-                <Link to="/policies" className="btn btn-ghost">
-                    Back to All Policies
-                </Link>
+                <div className="text-center mt-12">
+                    <Link 
+                        to="/policies" 
+                        className="inline-flex items-center px-6 py-3 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-all"
+                    >
+                        <FaArrowLeft className="mr-2" /> Back to All Policies
+                    </Link>
+                </div>
             </div>
         </div>
     );
