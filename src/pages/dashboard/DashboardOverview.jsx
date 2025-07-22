@@ -19,6 +19,7 @@ const DashboardOverview = () => {
     const [loadingDashboard, setLoadingDashboard] = useState(true);
     const [error, setError] = useState(null);
     const axiosSecure = useAxiosSecure();
+    console.log(dashboardData);
 
     const isSuccessStatus = (status) => {
         return ['completed', 'paid', 'success', 'succeeded'].includes(status?.toLowerCase());
@@ -267,23 +268,6 @@ const DashboardOverview = () => {
             default: return <FaDollarSign className="text-2xl" />;
         }
     };
-    const getIconColorClass = (title) => {
-        switch (title) {
-            case 'Total Users': return 'text-blue-500';
-            case 'Total Policies': return 'text-green-500';
-            case 'Total Applications': return 'text-purple-500';
-            case 'Total Claims': return 'text-red-500';
-            case 'Total Income': return 'text-yellow-500';
-            case 'Assigned Customers': return 'text-indigo-500';
-            case 'Your Blogs': return 'text-orange-500';
-            case 'Assigned Applications': return 'text-teal-500';
-            case 'My Policies': return 'text-blue-600';
-            case 'Total Payments Made': return 'text-green-600';
-            case 'Total Amount Paid': return 'text-purple-600';
-            case 'Claim Requests': return 'text-red-600';
-            default: return 'text-gray-500';
-        }
-    };
     if (userLoading || loadingDashboard) {
         return <Spinner />;
     }
@@ -311,7 +295,7 @@ const DashboardOverview = () => {
 
     return (
         <div className="container mx-auto p-6 space-y-8 min-h-screen bg-gray-50">
-            <h2 className="text-4xl font-extrabold text-gray-900 text-center mb-10 pt-4">
+            <h2 className="text-4xl font-bold text-gray-900 mb-10 ">
                 Welcome, <span className="text-sky-700">{user?.displayName?.split(' ')[0] || 'User'}!</span>
             </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
@@ -600,7 +584,7 @@ const DashboardOverview = () => {
                                         <p className="text-sm text-gray-500 mb-4">
                                             By {blog.createdBy} • {new Date(blog.createdAt).toLocaleDateString()}
                                         </p>
-                                        <p className="text-gray-600 line-clamp-3">{blog.description || 'No content available'}</p>
+                                        <p className="text-gray-600 line-clamp-3">{blog.summary || 'No content available'}</p>
                                     </div>
                                 </div>
                             ))}

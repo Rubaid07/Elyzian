@@ -7,7 +7,6 @@ import {
   FaUserFriends, FaBlogger, FaPenFancy, FaFileInvoiceDollar,
   FaSignOutAlt, FaBars, FaHandsHelping, FaMoneyBillWave,
   FaHome, FaUserTie,
-  FaRegFileAlt
 } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 import useAxiosSecure from '../hooks/useAxiosSecure';
@@ -125,7 +124,7 @@ const DashboardLayout = () => {
           </Link>
         </header>
 
-        <main className="flex-1 p-4 md:p-6">
+        <main className="flex-1 md:p-6 min-h-screen">
           <Outlet />
         </main>
       </div>
