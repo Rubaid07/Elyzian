@@ -225,7 +225,7 @@ const ManageApplications = () => {
         {selectedApp && (
           <dialog open className="modal sm:modal-middle">
             <div className="modal-box max-w-3xl w-full max-h-[90vh] p-0 overflow-hidden">
-              <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6 text-white">
+              <div className="bg-gradient-to-r from-sky-600 to-blue-700 p-6 text-white">
                 <h3 className="font-bold text-xl">Application Details</h3>
                 <button 
                   className="btn btn-sm btn-circle absolute right-2 top-2 bg-white/10 border-none hover:bg-white/20"

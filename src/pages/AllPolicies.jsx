@@ -1,36 +1,58 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router';
 import useAxiosPublic from '../hooks/useAxiosPublic';
 import Spinner from '../component/Loader/Spinner';
-import { FaShieldAlt, FaUserClock, FaMoneyBillWave, FaCalendarAlt } from 'react-icons/fa';
+import { FaShieldAlt, FaUserClock, FaMoneyBillWave, FaCalendarAlt, FaSearch } from 'react-icons/fa';
 
 const AllPolicies = () => {
     const axiosPublic = useAxiosPublic();
     const [policies, setPolicies] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [currentPage, setCurrentPage] = useState(1); 
-    const [totalPages, setTotalPages] = useState(1); 
+    const [currentPage, setCurrentPage] = useState(1);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [totalPages, setTotalPages] = useState(1);
     const policiesPerPage = 6;
-    const fetchPolicies = () => {
-        setLoading(true);
-        setError(null);
-        axiosPublic.get(`/policies?page=${currentPage}&limit=${policiesPerPage}`)
-            .then(res => {
-                setPolicies(res.data.policies || []);
-                setTotalPages(res.data.totalPages || 1); 
-            })
-            .catch(err => {
-                console.error('Error fetching policies:', err);
-                setError('Failed to load policies. Please try again later.');
-            })
-            .finally(() => setLoading(false));
+    const search = useRef(null);
+    const prevSearch = useRef('');
+
+    const policiesPromise = async () => {
+        try {
+            setLoading(true);
+            setError(null);
+            const res = await axiosPublic.get(`/policies?page=${currentPage}&limit=${policiesPerPage}&search=${searchTerm}`);
+            setPolicies(res.data.policies || []);
+            setTotalPages(res.data.totalPages || 1);
+        } catch (err) {
+            console.error('Error fetching policies:', err);
+            setError('Failed to load policies. Please try again later.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleSearch = (e) => {
+        e.preventDefault(); 
+        setCurrentPage(1); 
+        policiesPromise();
+    };
+
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            handleSearch(e);
+        }
     };
 
     useEffect(() => {
-        fetchPolicies();
-    }, [currentPage, axiosPublic]); 
-    const handlePageChange = (pageNumber) => {
+        policiesPromise();
+    }, [currentPage]);
+
+    useEffect(() => {
+        prevSearch.current = searchTerm;
+    }, [searchTerm]);
+
+     const handlePageChange = (pageNumber) => {
         setCurrentPage(pageNumber);
     };
     const pageNumbers = [...Array(totalPages).keys()].map(num => num + 1);
@@ -54,9 +76,9 @@ const AllPolicies = () => {
     }
 
     return (
-        <section className="bg-gradient-to-b from-gray-50 to-white py-16 px-4">
+        <section className="bg-gradient-to-b from-gray-50 to-white md:py-16 py-10 px-4">
             <div className="max-w-7xl mx-auto">
-                <div className="text-center mb-16">
+                <div className="text-center md:mb-16 mb-10">
                     <h1 className="text-4xl font-bold text-gray-900 mb-4">
                         Our <span className="text-sky-600">Insurance Policies</span>
                     </h1>
@@ -64,18 +86,46 @@ const AllPolicies = () => {
                         Choose from our comprehensive range of insurance policies designed to protect what matters most to you
                     </p>
                 </div>
+                
+                <form onSubmit={handleSearch} className="mb-8 max-w-md mx-auto">
+                    <div className="flex items-center gap-3">
+                        <input
+                            ref={search}
+                            type="text"
+                            placeholder="Search policies"
+                            className="input input-bordered w-full pl-5"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            onKeyDown={handleKeyDown}
+                        />
+                        <button 
+                            type="submit" 
+                            className="bg-transparent border-none cursor-pointer "
+                            aria-label="Search"
+                        >
+                            <div className='flex items-center gap-2 btn bg-sky-600 hover:bg-sky-700 text-white'>
+                                <FaSearch />
+                            Search
+                            </div>
+                        </button>
+                    </div>
+                </form>
 
                 {policies.length === 0 ? (
                     <div className="bg-white rounded-xl shadow-md p-8 max-w-2xl mx-auto text-center">
-                        <p className="text-gray-600 text-lg mb-4">No policies available at the moment</p>
-                        <p className="text-gray-500">We're working on adding new policies. Please check back later!</p>
+                        <p className="text-gray-600 text-lg mb-4">
+                            {searchTerm ? 'No policies match your search' : 'No policies available at the moment'}
+                        </p>
+                        <p className="text-gray-500">
+                            {searchTerm ? 'Try a different search term' : 'We\'re working on adding new policies. Please check back later!'}
+                        </p>
                     </div>
                 ) : (
                     <>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                             {policies.map(policy => (
-                                <div 
-                                    key={policy._id} 
+                                <div
+                                    key={policy._id}
                                     className="bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-2 border border-gray-100"
                                 >
                                     {policy.policyImage && (
@@ -93,7 +143,7 @@ const AllPolicies = () => {
                                     <div className="p-6">
                                         <h2 className="text-xl font-bold text-gray-900 mb-3 leading-tight">{policy.policyTitle}</h2>
                                         <p className="text-gray-600 mb-4 line-clamp-2">{policy.description}</p>
-                                        
+
                                         <div className="space-y-3 mb-6">
                                             <div className="flex items-center text-gray-700">
                                                 <FaUserClock className="w-5 h-5 text-sky-500 mr-2" />

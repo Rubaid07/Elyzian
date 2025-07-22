@@ -66,7 +66,7 @@ const BlogDetails = () => {
     }
 
     return (
-        <div className="bg-gradient-to-b from-gray-50 to-white py-12">
+        <div className="bg-gradient-to-b from-gray-50 to-white md:py-16 py-10">
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="mb-8">
                     <Link 

@@ -94,7 +94,7 @@ const ApplicationFormPage = () => {
     }
 
     return (
-        <div className="bg-gradient-to-b from-gray-50 to-white min-h-screen md:py-12 md:px-4 sm:px-6 lg:px-8">
+        <div className="bg-gradient-to-b from-gray-50 to-white py-10 md:py-16 md:px-4 ">
             <div className="max-w-3xl mx-auto">
                 <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
                     <div className="p-6 md:p-8">

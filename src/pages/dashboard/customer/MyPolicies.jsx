@@ -5,6 +5,7 @@ import Spinner from '../../../component/Loader/Spinner';
 import toast from 'react-hot-toast';
 import Swal from 'sweetalert2';
 import { useForm } from 'react-hook-form';
+import jsPDF from 'jspdf';
 
 const ReviewModal = ({ closeModal, onSubmitReview, modalRef }) => {
   const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm();
@@ -182,6 +183,54 @@ const MyPolicies = () => {
     }
   };
 
+  const handleDownloadPolicy = (policy) => {
+    const doc = new jsPDF();
+    doc.setFontSize(24);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Policy Document', 20, 20);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Your Company Name', 20, 30); 
+    doc.text('Date: ' + new Date().toLocaleDateString(), 160, 30);
+    doc.setFontSize(14);
+    doc.text('Policy Holder Information:', 20, 50);
+    doc.setFontSize(12);
+    doc.text(`Name: ${policy.applicantName || 'N/A'}`, 20, 60);
+    doc.text(`Email: ${policy.email || 'N/A'}`, 20, 68);
+    doc.text(`Address: ${policy.address || 'N/A'}`, 20, 76);
+    doc.text(`NID/SSN: ${policy.nidSsn || 'N/A'}`, 20, 84);
+    doc.setFontSize(14);
+    doc.text('Policy Details:', 20, 100);
+    doc.setFontSize(12);
+    doc.text(`Policy Name: ${policy.policyName || 'N/A'}`, 20, 110);
+    doc.text(`Policy ID: ${policy.policyId || 'N/A'}`, 20, 118);
+    doc.text(`Policy Number: ${policy.policyNumber || 'N/A'}`, 20, 126);
+    doc.text(`Applied On: ${new Date(policy.appliedAt).toLocaleDateString()}`, 20, 134);
+    doc.text(`Status: ${policy.status || 'N/A'}`, 20, 142);
+    doc.text(`Assigned Agent: ${policy.assignedAgent || 'N/A'}`, 20, 150);
+    doc.setFontSize(14);
+    doc.text('Payment Information:', 20, 166);
+    doc.setFontSize(12);
+    doc.text(`Premium Amount: BDT ${policy.premiumAmount?.toLocaleString() || 'N/A'}`, 20, 176);
+    doc.text(`Payment Frequency: ${policy.paymentFrequency || 'N/A'}`, 20, 184);
+    doc.text(`Payment Status: ${policy.paymentStatus || 'N/A'}`, 20, 192);
+    doc.text(`Transaction ID: ${policy.transactionId || 'N/A'}`, 20, 200);
+    doc.text(`Payment Date: ${policy.paymentDate ? new Date(policy.paymentDate).toLocaleDateString() : 'N/A'}`, 20, 208);
+    doc.setFontSize(14);
+    doc.text('Nominee Details:', 20, 224);
+    doc.setFontSize(12);
+    doc.text(`Nominee Name: ${policy.nomineeName || 'N/A'}`, 20, 234);
+    doc.text(`Nominee Relationship: ${policy.nomineeRelationship || 'N/A'}`, 20, 242);
+    doc.setFontSize(14);
+    doc.text('Health Information:', 20, 258);
+    doc.setFontSize(12);
+    doc.text(`Consumes Alcohol: ${policy.consumesAlcohol ? 'Yes' : 'No'}`, 20, 268);
+    doc.text(`Hospitalized Before: ${policy.hasBeenHospitalized ? 'Yes' : 'No'}`, 20, 276);
+    doc.text(`Pre-existing Conditions: ${policy.hasPreExistingConditions ? 'Yes' : 'No'}`, 20, 284);
+    doc.save(`Policy_${policy.policyName.replace(/\s/g, '_')}_${policy.applicantName.replace(/\s/g, '_')}.pdf`);
+    toast.success('Policy document downloaded!');
+  };
+
   if (userLoading || loadingApplications) return <Spinner />;
 
   if (error) {
@@ -235,9 +284,17 @@ const MyPolicies = () => {
                     View
                   </button>
                   {app.status === 'approved' && (
-                    <button onClick={() => handleGiveReview(app)} className="btn btn-xs btn-outline btn-success">
-                      Review
-                    </button>
+                    <>
+                      <button onClick={() => handleGiveReview(app)} className="btn btn-xs btn-outline btn-success">
+                        Review
+                      </button>
+                      <button 
+                        onClick={() => handleDownloadPolicy(app)} 
+                        className="btn btn-xs btn-outline btn-primary"
+                      >
+                        Download Policy
+                      </button>
+                    </>
                   )}
                 </td>
               </tr>

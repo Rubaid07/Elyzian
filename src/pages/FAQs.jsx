@@ -47,7 +47,7 @@ const FAQs = () => {
   ];
 
   return (
-    <section className="bg-gradient-to-b from-sky-50 to-white py-16 px-4 ">
+    <section className="bg-gradient-to-b from-sky-50 to-white md:py-16 px-4 py-10">
       <div className="container mx-auto max-w-6xl">
         <div className="text-center mb-16">
           <div className="inline-flex items-center justify-center bg-sky-100 rounded-full p-5 mb-6">
