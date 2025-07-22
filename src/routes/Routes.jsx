@@ -36,12 +36,14 @@ import ApplyAsAgent from "../pages/dashboard/customer/ApplyAsAgent";
 import EditBlog from "../pages/dashboard/agent/EditBlog";
 import ManageClaims from "../pages/dashboard/Admin/ManageClaims";
 import BlogDetails from "../pages/BlogDetails";
+import Error from "../component/Error";
 
 
 export const router = createBrowserRouter([
   {
     path: "/",
     Component: MainLayout,
+    errorElement: <Error></Error>,
     children: [
       {
         index: true,
@@ -114,67 +116,67 @@ export const router = createBrowserRouter([
       // Admin Routes
       {
         path: 'manage-users',
-        Component: ManageUsers
+        element: <PrivateRoute allowedRoles={['admin']}><ManageUsers /></PrivateRoute>
       },
       {
         path: 'manage-policies',
-        Component: ManagePolicies
+        element: <PrivateRoute allowedRoles={['admin']}><ManagePolicies /></PrivateRoute>
       },
       {
         path: 'manage-applications',
-        Component: ManageApplications
+        element: <PrivateRoute allowedRoles={['admin']}><ManageApplications /></PrivateRoute>
       },
       {
         path: 'transactions',
-        Component: ManageTransactions
+        element: <PrivateRoute allowedRoles={['admin']}><ManageTransactions /></PrivateRoute>
       },
       {
         path: 'manage-agents',
-        Component: ManageAgents
+        element: <PrivateRoute allowedRoles={['admin']}><ManageAgents /></PrivateRoute>
       },
       {
         path: 'manage-claims',
-        Component: ManageClaims
+        element: <PrivateRoute allowedRoles={['admin']}><ManageClaims /></PrivateRoute>
       },
 
       // Agent Routes
       {
         path: 'assigned-customers',
-        Component: AssignedCustomers
+        element: <PrivateRoute allowedRoles={['agent']}><AssignedCustomers /></PrivateRoute>
       },
       {
         path: 'manage-blogs',
-        Component: ManageBlogs
+        element: <PrivateRoute allowedRoles={['agent']}><ManageBlogs /></PrivateRoute>
       },
       {
         path: 'add-blog',
-        Component: AddBlog
+        element: <PrivateRoute allowedRoles={['agent']}><AddBlog /></PrivateRoute>
       },
       {
         path: 'manage-blogs/edit-blog/:id',
-        Component: EditBlog
+        element: <PrivateRoute allowedRoles={['agent']}><EditBlog /></PrivateRoute>
       },
 
       // Customer Routes
       {
         path: 'my-policies',
-        Component: MyPolicies
+        element: <PrivateRoute allowedRoles={['customer']}><MyPolicies /></PrivateRoute>
       },
       {
         path: 'payment-status',
-        Component: PaymentStatus
+        element: <PrivateRoute allowedRoles={['customer']}><PaymentStatus /></PrivateRoute>
       },
       {
         path: 'payment-status/payment/:id',
-        Component: Payment
+        element: <PrivateRoute allowedRoles={['customer']}><Payment /></PrivateRoute>
       },
       {
         path: 'claim-request',
-        Component: ClaimRequest
+        element: <PrivateRoute allowedRoles={['customer']}><ClaimRequest /></PrivateRoute>
       },
       {
         path: 'apply-agent',
-        Component: ApplyAsAgent
+        element: <PrivateRoute allowedRoles={['customer']}><ApplyAsAgent /></PrivateRoute>
       },
     ]
   }

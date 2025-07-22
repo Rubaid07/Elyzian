@@ -68,8 +68,7 @@ const CustomerReviews = () => {
           <h2 className="text-4xl font-bold text-gray-900 mb-4">
             Customer <span className="text-sky-600">Testimonials</span>
           </h2>
-          <div className="w-24 h-1 bg-gradient-to-r from-sky-400 to-blue-600 mx-auto mb-8 rounded-full"></div>
-          <Spinner className="h-16 w-16 mx-auto" />
+          <Spinner />
         </div>
       </section>
     );
@@ -82,7 +81,6 @@ const CustomerReviews = () => {
           <h2 className="text-4xl font-bold text-gray-900 mb-4">
             Customer <span className="text-sky-600">Testimonials</span>
           </h2>
-          <div className="w-24 h-1 bg-gradient-to-r from-sky-400 to-blue-600 mx-auto mb-8 rounded-full"></div>
           <div className="bg-red-50 border-l-4 border-red-500 p-4 max-w-2xl mx-auto">
             <p className="text-red-700 font-medium">{errorReviews}</p>
           </div>
