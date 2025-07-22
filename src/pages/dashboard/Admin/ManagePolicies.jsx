@@ -234,7 +234,9 @@ const ManagePolicies = () => {
                                 <option value="">Select Category</option>
                                 <option value="Term Life">Term Life</option>
                                 <option value="Endowment Plan">Endowment Plan</option>
+                                <option value="Education">Education</option>
                                 <option value="Senior Plan">Senior Plan</option>
+                                <option value="Accidental">Accidental</option>
                                 <option value="Health">Health</option>
                                 <option value="Investment">Investment</option>
                                 <option value="Retirement">Retirement</option>
