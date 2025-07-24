@@ -1,18 +1,25 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import useAxiosSecure from '../../../hooks/useAxiosSecure';
 import Spinner from '../../../component/Loader/Spinner';
-import { FaTimes, FaEye, FaCalendarAlt, FaUserTie, FaIdCard, FaFileAlt, FaMoneyBillWave } from 'react-icons/fa';
+import { FaTimes, FaEye, FaCalendarAlt, FaUserTie, FaIdCard, FaFileAlt } from 'react-icons/fa';
 import Swal from 'sweetalert2';
 import { RiFileUserFill } from 'react-icons/ri';
 import { MdAttachMoney, MdEmail, MdHome, MdMedicalServices } from "react-icons/md";
+import { useForm } from 'react-hook-form';
+import { FaTimesCircle } from 'react-icons/fa';
+
 const ManageApplications = () => {
   const axiosSecure = useAxiosSecure();
   const [applications, setApplications] = useState([]);
   const [agents, setAgents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedApp, setSelectedApp] = useState(null);
+  const [appToReject, setAppToReject] = useState(null);
+  const rejectionModalRef = useRef(null);
+  const { register, handleSubmit, reset, formState: { errors } } = useForm();
+  const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
 
-  const fetchApplicationsAndAgents = async () => {
+  const appAndAgentData = async () => {
     setLoading(true);
     try {
       const [appsRes, agentsRes] = await Promise.all([
@@ -28,46 +35,48 @@ const ManageApplications = () => {
       setLoading(false);
     }
   };
-
   useEffect(() => {
-    fetchApplicationsAndAgents();
+    appAndAgentData();
   }, [axiosSecure]);
 
-  const handleReject = async (id) => {
-    const confirm = await Swal.fire({
-      title: 'Are you sure?',
-      text: "This will reject the application.",
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#e3342f',
-      cancelButtonColor: '#6c757d',
-      confirmButtonText: 'Yes, reject it!'
-    });
+  const openRejectModal = (app) => {
+    setAppToReject(app);
+    reset();
+    if (rejectionModalRef.current) {
+      rejectionModalRef.current.showModal();
+    }
+  };
+  const handleFeedback = async (data) => {
+    if (!appToReject?._id) return;
 
-    if (confirm.isConfirmed) {
-      try {
-        const res = await axiosSecure.patch(`/admin/policy-applications/${id}`, { status: 'rejected' });
-        if (res.data.modifiedCount > 0) {
-          setApplications(prev => prev.map(app => app._id === id ? { ...app, status: 'rejected' } : app));
-          Swal.fire({
-            title: 'Rejected!',
-            text: 'The application has been rejected.',
-            icon: 'success'
-          });
-        } else {
-          Swal.fire('Info', 'Application already rejected or no changes made.', 'info');
-        }
-      } catch (err) {
-        console.error(err);
+    setIsSubmittingFeedback(true);
+    try {
+      const res = await axiosSecure.patch(`/admin/policy-applications/${appToReject._id}`, { status: 'rejected', rejectionFeedback: data.feedback });
+      if (res.data.modifiedCount > 0) {
+        setApplications(prev => prev.map(app => app._id === appToReject._id ? { ...app, status: 'rejected', rejectionFeedback: data.feedback, rejectedAt: new Date().toISOString() } : app));
         Swal.fire({
-          title: 'Error',
-          text: 'Failed to reject application',
-          icon: 'error'
+          title: 'Rejected!',
+          text: 'The application has been rejected with feedback.',
+          icon: 'success'
         });
+      } else {
+        Swal.fire('Info', 'Application already rejected or no changes made.', 'info');
+      }
+    } catch (err) {
+      console.error(err);
+      Swal.fire({
+        title: 'Error',
+        text: 'Failed to reject application',
+        icon: 'error'
+      });
+    } finally {
+      setIsSubmittingFeedback(false);
+      setAppToReject(null);
+      if (rejectionModalRef.current) {
+        rejectionModalRef.current.close();
       }
     }
   };
-
   const handleAssignAgent = async (appId, agentEmail) => {
     if (!agentEmail) {
       Swal.fire('Warning', 'Please select an agent to assign.', 'warning');
@@ -159,10 +168,10 @@ const ManageApplications = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${app.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                          app.status === 'approved' ? 'bg-green-100 text-green-800' :
-                            app.status === 'rejected' ? 'bg-red-100 text-red-800' :
-                              app.status === 'paid' ? 'bg-blue-100 text-blue-800' :
-                                'bg-gray-100 text-gray-800'
+                        app.status === 'approved' ? 'bg-green-100 text-green-800' :
+                          app.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                            app.status === 'paid' ? 'bg-blue-100 text-blue-800' :
+                              'bg-gray-100 text-gray-800'
                         }`}>
                         {app.status}
                       </span>
@@ -177,10 +186,7 @@ const ManageApplications = () => {
                           <option disabled value="">Select agent</option>
                           {agents.map(agent => (
                             <option key={agent._id} value={agent.email}>
-                              <div className="flex items-center">
-                                <FaUserTie className="mr-2" />
-                                {agent.name}
-                              </div>
+                              {agent.name} {agent.email && `(${agent.email})`}
                             </option>
                           ))}
                         </select>
@@ -202,7 +208,7 @@ const ManageApplications = () => {
                         </button>
                         {app.status === 'pending' && !app.assignedAgent && (
                           <button
-                            onClick={() => handleReject(app._id)}
+                            onClick={() => openRejectModal(app)}
                             className="bg-red-500 text-white hover:bg-red-600 btn flex items-center gap-2 px-3"
                             title="Reject Application"
                           >
@@ -232,7 +238,7 @@ const ManageApplications = () => {
               </div>
 
               <div className="p-6 overflow-y-auto" style={{ maxHeight: 'calc(90vh - 150px)' }}>
-                <div className="grid grid-cols-1  gap-6">
+                <div className="grid grid-cols-1 gap-6">
                   <div className="bg-gray-50 p-4 rounded-lg">
                     <h4 className="font-semibold text-lg text-gray-800 mb-4 flex items-center">
                       <RiFileUserFill className="mr-2 text-blue-500" />
@@ -286,10 +292,6 @@ const ManageApplications = () => {
                         value={selectedApp.nomineeName || 'N/A'} />
                       <Details icon={<RiFileUserFill />} label="Nominee Relationship"
                         value={selectedApp.nomineeRelationship || 'N/A'} />
-                      <Details icon={<FaMoneyBillWave />} label="Premium Amount"
-                        value={`BDT ${selectedApp.premiumAmount?.toLocaleString()}`} />
-                      <Details icon={<FaMoneyBillWave />} label="Payment Frequency"
-                        value={selectedApp.paymentFrequency} />
                     </div>
                   </div>
                 </div>
@@ -300,10 +302,10 @@ const ManageApplications = () => {
                     <div>
                       <span className="block text-sm font-medium text-gray-500">Current Status</span>
                       <span className={`mt-1 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${selectedApp.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                          selectedApp.status === 'approved' ? 'bg-green-100 text-green-800' :
-                            selectedApp.status === 'rejected' ? 'bg-red-100 text-red-800' :
-                              selectedApp.status === 'paid' ? 'bg-blue-100 text-blue-800' :
-                                'bg-gray-100 text-gray-800'
+                        selectedApp.status === 'approved' ? 'bg-green-100 text-green-800' :
+                          selectedApp.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                            selectedApp.status === 'paid' ? 'bg-blue-100 text-blue-800' :
+                              'bg-gray-100 text-gray-800'
                         }`}>
                         {selectedApp.status}
                       </span>
@@ -315,6 +317,17 @@ const ManageApplications = () => {
                         <span>{selectedApp.assignedAgent || 'Not assigned'}</span>
                       </div>
                     </div>
+                    {selectedApp.status === 'rejected' && selectedApp.rejectionFeedback && (
+                      <div className="md:col-span-2 mt-4">
+                        <span className="block text-sm font-medium text-gray-500">Rejection Feedback</span>
+                        <p className="mt-1 text-sm text-gray-900 bg-red-50 p-3 rounded-md border border-red-200">
+                          {selectedApp.rejectionFeedback}
+                        </p>
+                        <span className="text-xs text-gray-500 mt-1 block">
+                          Rejected on: {selectedApp.rejectedAt ? new Date(selectedApp.rejectedAt).toLocaleString() : 'N/A'}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -327,6 +340,63 @@ const ManageApplications = () => {
                   Close
                 </button>
               </div>
+            </div>
+          </dialog>
+        )}
+
+        {appToReject && (
+          <dialog id="rejection_feedback_modal" className="modal" ref={rejectionModalRef}>
+            <div className="modal-box">
+              <h3 className="text-2xl font-semibold text-center text-gray-800 mb-6 flex items-center justify-center">
+                <FaTimesCircle className="text-red-500 mr-3 text-3xl" />
+                Reject Application: {appToReject?.policyName}
+              </h3>
+              <p className="text-gray-600 text-center mb-5">
+                Please provide feedback for the rejection of this application.
+              </p>
+
+              <form onSubmit={handleSubmit(handleFeedback)} className="space-y-4">
+                <div>
+                  <label htmlFor="feedback" className="block text-sm font-medium text-gray-700 mb-2">
+                    Rejection Feedback:
+                  </label>
+                  <textarea
+                    id="feedback"
+                    rows="5"
+                    className="textarea textarea-bordered w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                    placeholder="e.g., 'Incomplete documents', 'Applicant does not meet criteria', 'High-risk profile'"
+                    {...register('feedback', { required: 'Rejection feedback is required.' })}
+                  ></textarea>
+                  {errors.feedback && <p className="text-red-500 text-sm mt-1">{errors.feedback.message}</p>}
+                </div>
+
+                <div className="flex justify-end gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      rejectionModalRef.current.close();
+                      setAppToReject(null);
+                      reset();
+                    }}
+                    className="btn btn-ghost"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn bg-red-600 hover:bg-red-700 text-white"
+                    disabled={isSubmittingFeedback}
+                  >
+                    {isSubmittingFeedback ? (
+                      <>
+                        <span className="loading loading-spinner loading-sm"></span> Submitting...
+                      </>
+                    ) : (
+                      'Submit Feedback & Reject'
+                    )}
+                  </button>
+                </div>
+              </form>
             </div>
           </dialog>
         )}

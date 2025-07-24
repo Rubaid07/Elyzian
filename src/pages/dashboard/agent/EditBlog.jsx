@@ -36,7 +36,7 @@ const EditBlog = () => {
         setBlog(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleSummaryChange = (e) => {
+    const handleSummary = (e) => {
         const text = e.target.value;
         if (text.length <= maxSummaryChars) {
             setSummaryValue(text);
@@ -122,7 +122,7 @@ const EditBlog = () => {
                         id="summary"
                         name="summary"
                         value={summaryValue}
-                        onChange={handleSummaryChange}
+                        onChange={handleSummary}
                         rows="3"
                         className="textarea textarea-bordered w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder={`Provide a brief summary for the blog card (max ${maxSummaryChars} characters)`}

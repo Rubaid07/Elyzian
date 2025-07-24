@@ -65,12 +65,14 @@ const MeetAgent = () => {
               className="bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 border border-gray-100"
             >
               <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
-                <img 
+                {/* <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div> */}
+                <div className='flex justify-center'>
+                  <img 
                   src={agent.photo || 'https://i.ibb.co/5GzXkwq/user.png'}
                   alt={agent.name}
-                  className="w-full h-64 object-cover"
+                  className="w-64 h-64 rounded-full object-cover"
                 />
+                </div>
               </div>
 
               <div className="p-6">

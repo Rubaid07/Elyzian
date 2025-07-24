@@ -51,7 +51,7 @@ const ManageBlogs = () => {
             }
           })
           .catch(err => {
-            console.error(err);
+            console.log(err);
             Swal.fire({
               title: 'Failed',
               text: 'Failed to delete blog. An error occurred.',

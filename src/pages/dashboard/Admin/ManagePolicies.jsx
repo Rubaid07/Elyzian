@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { FaTrashAlt, FaEdit, FaPlus, FaSearch, FaImage, FaCross } from 'react-icons/fa';
-import { FiDownload } from 'react-icons/fi';
+import { FaTrashAlt, FaEdit, FaPlus, FaSearch, FaImage } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 import { useForm } from 'react-hook-form';
 import useAxiosSecure from '../../../hooks/useAxiosSecure';
@@ -23,26 +22,26 @@ const ManagePolicies = () => {
 
     const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm();
 
-    const fetchPolicies = () => {
+    const PoliciesData = () => {
         setLoading(true);
         axiosSecure.get('/admin/policies')
             .then(res => setPolicies(res.data || []))
             .catch(err => {
-                console.error('Error fetching policies:', err);
+                console.log(err);
                 toast.error('Failed to load policies.');
             })
             .finally(() => setLoading(false));
     };
 
     useEffect(() => {
-        fetchPolicies();
+        PoliciesData();
     }, [axiosSecure]);
 
-    const filteredPolicies = policies.filter(policy => {
-        const matchesSearch = policy.policyTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const filterPolicy = policies.filter(policy => {
+        const matchSarch = policy.policyTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
             policy.description.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesCategory = filterCategory === 'all' || policy.category === filterCategory;
-        return matchesSearch && matchesCategory;
+        return matchSarch && matchesCategory;
     });
 
     const categories = [
@@ -112,7 +111,7 @@ const ManagePolicies = () => {
                 });
                 imageUrl = res.data.imageUrl;
             } catch (err) {
-                console.error("Image upload failed:", err);
+                console.log(err);
                 toast.error("Image upload failed.");
                 setImageUploadLoading(false);
                 return;
@@ -137,9 +136,9 @@ const ManagePolicies = () => {
                 toast.success('Policy added successfully!');
             }
             closeModal();
-            fetchPolicies();
+            PoliciesData();
         } catch (err) {
-            console.error('Error saving policy:', err);
+            console.log(err);
             toast.error(`Failed to ${editingPolicy ? 'update' : 'add'} policy.`);
         } finally {
             setImageUploadLoading(false);
@@ -205,7 +204,7 @@ const ManagePolicies = () => {
                     </select>
                 </div>
 
-                {filteredPolicies.length === 0 ? (
+                {filterPolicy.length === 0 ? (
                     <div className="text-center py-12">
                         <div className="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                             <FaSearch className="text-3xl text-gray-400" />
@@ -249,7 +248,7 @@ const ManagePolicies = () => {
                                 </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-200">
-                                {filteredPolicies.map((policy, index) => (
+                                {filterPolicy.map((policy, index) => (
                                     <tr key={policy._id} className="hover:bg-gray-50 transition-colors">
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{index + 1}</td>
                                         <td className="px-6 py-4 whitespace-nowrap">

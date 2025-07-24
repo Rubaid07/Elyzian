@@ -21,13 +21,13 @@ const QuotePage = () => {
     const [loadingUserRole, setLoadingUserRole] = useState(true);
 
     useEffect(() => {
-        const fetchPolicyDetails = async () => {
+        const policyDetails = async () => {
             if (id) {
                 try {
                     const res = await axiosSecure.get(`/policies/${id}`);
                     setPolicyTitle(res.data.policyTitle || 'Selected Policy');
                 } catch (error) {
-                    console.error('Error fetching policy for quote:', error);
+                    console.log(error);
                     toast.error('Failed to load policy details for quote.');
                     setPolicyTitle('Unknown Policy');
                 } finally {
@@ -37,7 +37,7 @@ const QuotePage = () => {
                 setLoadingPolicy(false);
             }
         };
-        fetchPolicyDetails();
+        policyDetails();
     }, [id, axiosSecure]);
 
     useEffect(() => {
@@ -208,7 +208,7 @@ const QuotePage = () => {
                             <div className="mt-8 p-6 bg-sky-50 border border-sky-200 rounded-lg">
                                 <h3 className="text-xl font-bold text-gray-800 mb-3 text-center">Your Estimated Premium</h3>
                                 <div className="text-center mb-4">
-                                    <span className="text-4xl font-extrabold text-sky-600">${estimatedPremium}</span>
+                                    <span className="text-4xl font-extrabold text-sky-600">BDT {estimatedPremium}</span>
                                     <span className="text-gray-600"> / month</span>
                                 </div>
                                 <p className="text-sm text-gray-600 text-center mb-6">

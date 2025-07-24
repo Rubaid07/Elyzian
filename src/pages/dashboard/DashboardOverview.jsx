@@ -1,11 +1,15 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { use, useEffect, useState } from 'react';
 import useAxiosSecure from '../../hooks/useAxiosSecure';
 import { AuthContext } from '../../context/AuthContext';
 import Spinner from '../../component/Loader/Spinner';
 import {
     FaUsers, FaFileContract, FaHandHoldingMedical, FaDollarSign, FaUserTie,
-    FaBlog, FaFileAlt, FaUmbrellaBeach, FaCreditCard, FaExclamationTriangle,
-    FaFileSignature, FaMoneyBillWave
+    FaBlog, FaFileAlt, FaCreditCard,
+    FaFileSignature, FaMoneyBillWave,
+    FaBuilding,
+    FaCommentDots,
+    FaCalendarAlt,
+    FaTimesCircle
 } from 'react-icons/fa';
 import {
     BarChart, PieChart, LineChart, Bar, Pie, Line, XAxis, YAxis, CartesianGrid,
@@ -13,13 +17,12 @@ import {
 } from 'recharts';
 
 const DashboardOverview = () => {
-    const { user, loading: userLoading } = useContext(AuthContext);
+    const { user, loading: userLoading } = use(AuthContext);
     const [dashboardData, setDashboardData] = useState(null);
     const [role, setRole] = useState(null);
     const [loadingDashboard, setLoadingDashboard] = useState(true);
     const [error, setError] = useState(null);
     const axiosSecure = useAxiosSecure();
-    console.log(dashboardData);
 
     const isSuccessStatus = (status) => {
         return ['completed', 'paid', 'success', 'succeeded'].includes(status?.toLowerCase());
@@ -57,47 +60,51 @@ const DashboardOverview = () => {
     const getChartData = () => {
         if (!dashboardData) return [];
         if (role === 'admin') {
-            const monthlyEarnings = dashboardData.transactions?.reduce((acc, tx) => {
-                if (isSuccessStatus(tx.status)) {
-                    const date = new Date(tx.paymentDate);
-                    const monthYear = `${date.getFullYear()}-${date.getMonth() + 1}`;
-                    acc[monthYear] = (acc[monthYear] || 0) + (tx.premiumAmount || 0);
-                }
+            const earningsByDay = dashboardData.recentTransactions?.reduce((acc, txn) => {
+                const date = new Date(txn.paymentDate).toLocaleDateString('en-GB', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric'
+                });
+                acc[date] = (acc[date] || 0) + txn.premiumAmount;
                 return acc;
             }, {});
-            const sortedMonthlyEarnings = Object.keys(monthlyEarnings || {})
-                .sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
-                .map(key => ({
-                    name: new Date(key).toLocaleString('default', { month: 'short', year: '2-digit' }),
-                    earnings: monthlyEarnings[key]
-                }));
 
-            const appStatusData = dashboardData.recentApplications?.reduce((acc, app) => {
-                acc[app.status] = (acc[app.status] || 0) + 1;
-                return acc;
-            }, { pending: 0, approved: 0, rejected: 0 });
+            const dailyEarningsChartData = Object.entries(earningsByDay || {}).map(([date, amount]) => ({
+                name: date,
+                value: amount
+            })).sort((a, b) => new Date(a.name) - new Date(b.name));
 
             return [
                 {
-                    title: "Monthly Earnings (BDT)",
+                    title: "Daily Earnings (BDT)",
                     type: "line",
-                    data: sortedMonthlyEarnings,
-                    dataKey: "earnings"
+                    data: dailyEarningsChartData,
+                    dataKey: "value",
+                    xAxisKey: "name",
+                    stroke: "#4CAF50",
+                    color: "#C8E6C9"
                 },
                 {
                     title: "Application Status Distribution",
                     type: "pie",
-                    data: Object.keys(appStatusData || {}).map(status => ({
-                        name: status,
-                        value: appStatusData[status],
-                        color: status === 'approved' ? '#4CAF50' :
-                            status === 'pending' ? '#2196F3' :
-                                '#F44336'
-                    })).filter(entry => entry.value > 0)
+                    data: (() => {
+                        const appStatusData = dashboardData.recentApplications?.reduce((acc, app) => {
+                            acc[app.status] = (acc[app.status] || 0) + 1;
+                            return acc;
+                        }, { pending: 0, approved: 0, rejected: 0 });
+
+                        return Object.keys(appStatusData || {}).map(status => ({
+                            name: status,
+                            value: appStatusData[status],
+                            color: status === 'approved' ? '#4CAF50' :
+                                status === 'pending' ? '#2196F3' :
+                                    '#F44336'
+                        })).filter(entry => entry.value > 0);
+                    })()
                 }
             ];
         }
-
         if (role === 'agent') {
             const assignedAppStatus = dashboardData.recentAssignedApplications?.reduce((acc, app) => {
                 acc[app.status] = (acc[app.status] || 0) + 1;
@@ -251,7 +258,7 @@ const DashboardOverview = () => {
                 return null;
         }
     };
-     const getIconComponent = (title) => {
+    const getIconComponent = (title) => {
         switch (title) {
             case 'Total Users': return <FaUsers className="text-2xl" />;
             case 'Total Policies': return <FaFileContract className="text-2xl" />;
@@ -261,10 +268,10 @@ const DashboardOverview = () => {
             case 'Assigned Customers': return <FaUserTie className="text-2xl" />;
             case 'Your Blogs': return <FaBlog className="text-2xl" />;
             case 'Assigned Applications': return <FaFileAlt className="text-2xl" />;
-            case 'My Policies': return <FaUmbrellaBeach className="text-2xl" />;
+            case 'My Policies': return <FaFileContract className="text-2xl" />;
             case 'Total Payments Made': return <FaCreditCard className="text-2xl" />;
             case 'Total Amount Paid': return <FaMoneyBillWave className="text-2xl" />;
-            case 'Claim Requests': return <FaExclamationTriangle className="text-2xl" />;
+            case 'Claim Requests': return <FaBuilding className="text-2xl" />;
             default: return <FaDollarSign className="text-2xl" />;
         }
     };
@@ -295,10 +302,10 @@ const DashboardOverview = () => {
 
     return (
         <div className="container mx-auto p-6 space-y-8 min-h-screen bg-gray-50">
-            <h2 className="text-4xl font-bold text-gray-900 mb-10 ">
+            <h2 className="md:text-4xl text-2xl font-bold text-gray-900 mb-10 ">
                 Welcome, <span className="text-sky-700">{user?.displayName?.split(' ')[0] || 'User'}!</span>
             </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
                 {dashboardData.cards?.map((card, index) => (
                     <div key={index} className="bg-white p-4 rounded-lg shadow border border-gray-200">
                         <div className="flex items-center">
@@ -326,7 +333,7 @@ const DashboardOverview = () => {
             )}
             <hr className="my-8 border-gray-300" />
             <section className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
-                <h3 className="text-2xl font-bold text-gray-800 mb-6 text-center">Recent Activities 📊</h3>
+                <h3 className="text-2xl font-bold text-gray-800 mb-6 text-center">Recent Activities</h3>
                 {role === 'admin' && dashboardData?.recentTransactions?.length > 0 && (
                     <div className="mb-8">
                         <h4 className="text-xl font-semibold text-gray-700 mb-4">Latest Transactions</h4>
@@ -548,9 +555,37 @@ const DashboardOverview = () => {
                         </div>
                     </div>
                 )}
+                 {role === 'customer' && dashboardData?.recentRejectionFeedbacks?.length > 0 && (
+            <div className="bg-white p-6 rounded-lg shadow-md mt-6">
+                <h3 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                    Your Recent Rejection Feedbacks
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {dashboardData.recentRejectionFeedbacks.map((fdbk, i) => (
+                        <div key={i} className="bg-red-50 border border-red-200 rounded-lg p-5 shadow-sm hover:shadow-md transition-shadow duration-300 transform">
+                            <div className="flex items-center mb-3">
+                                <FaFileAlt className="text-red-600 mr-2 text-xl" />
+                                <h4 className="text-lg font-semibold text-red-800 break-words">{fdbk.policyName}</h4>
+                            </div>
+                            <p className="text-sm text-gray-600 mb-3 flex items-center">
+                                <FaCalendarAlt className="mr-2 text-gray-500" />
+                                Rejected: <span className="font-medium ml-1">{new Date(fdbk.rejectedAt).toLocaleDateString()}</span>
+                            </p>
+                            <p className="text-gray-700 leading-relaxed bg-red-100 p-3 rounded-md border border-red-200">
+                                <span className="font-semibold text-red-800 flex items-center mb-1">
+                                    <FaCommentDots className="mr-2 text-red-600" />
+                                    Feedback:
+                                </span>
+                                {fdbk.rejectionFeedback}
+                            </p>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        )}
                 {dashboardData?.recentPolicies?.length > 0 && (
                     <div className="mt-8">
-                        <h4 className="text-xl font-semibold text-gray-700 mb-4">Recently Added Policies (All Users)</h4>
+                        <h4 className="text-xl font-semibold text-gray-700 mb-4">Recently Added Policies</h4>
                         <div className="overflow-x-auto">
                             <table className="min-w-full divide-y divide-gray-200">
                                 <thead className="bg-gray-100">
@@ -575,7 +610,7 @@ const DashboardOverview = () => {
                 )}
                 {dashboardData?.recentBlogs?.length > 0 && (
                     <div className="mt-8">
-                        <h4 className="text-xl font-semibold text-gray-700 mb-4">Latest Blogs (All Users)</h4>
+                        <h4 className="text-xl font-semibold text-gray-700 mb-4">Latest Blogs</h4>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {dashboardData.recentBlogs.map((blog, i) => (
                                 <div key={i} className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">

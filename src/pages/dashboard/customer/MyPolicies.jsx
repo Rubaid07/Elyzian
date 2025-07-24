@@ -1,20 +1,23 @@
-import React, { useContext, useEffect, useState, useRef } from 'react';
+import React, { use, useEffect, useState, useRef } from 'react';
 import { AuthContext } from '../../../context/AuthContext';
 import useAxiosSecure from '../../../hooks/useAxiosSecure';
 import Spinner from '../../../component/Loader/Spinner';
-import toast from 'react-hot-toast';
-import Swal from 'sweetalert2';
+import { FaEye, FaFileDownload, FaStar, FaCalendarAlt, FaUser, FaIdCard, FaHome, FaFileAlt } from 'react-icons/fa';
+import { MdEmail, MdAssignment, MdMedicalServices } from "react-icons/md";
 import { useForm } from 'react-hook-form';
 import jsPDF from 'jspdf';
+import toast from 'react-hot-toast';
+import Swal from 'sweetalert2';
 
 const ReviewModal = ({ closeModal, onSubmitReview, modalRef }) => {
   const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm();
   const [selectedRating, setSelectedRating] = useState(null);
 
   const feedbackValue = watch('feedback', '');
+  const charCount = feedbackValue.length;
+  const maxChars = 200;
 
-  const handleRatingChange = (event) => {
-    const value = parseInt(event.target.value);
+  const handleRating = (value) => {
     setSelectedRating(value);
     setValue('rating', value);
   };
@@ -25,16 +28,16 @@ const ReviewModal = ({ closeModal, onSubmitReview, modalRef }) => {
     setSelectedRating(null);
   };
 
-  const charCount = feedbackValue.length;
-  const maxChars = 200;
-
   return (
     <dialog id="review_modal" className="modal" ref={modalRef}>
       <div className="modal-box">
-        <h3 className="text-2xl font-semibold text-center mb-6">Leave a Review</h3>
-        <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-5">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-xl font-bold text-gray-800">Leave a Review</h3>
+          <button onClick={closeModal} className="btn btn-sm btn-circle btn-ghost">✕</button>
+        </div>
+        <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
           <div>
-            <label className="block font-medium mb-2">Your Rating</label>
+            <label className="block font-medium text-gray-700 mb-2">Your Rating</label>
             <div className="rating rating-lg">
               {[1, 2, 3, 4, 5].map((value) => (
                 <input
@@ -44,7 +47,7 @@ const ReviewModal = ({ closeModal, onSubmitReview, modalRef }) => {
                   value={value}
                   className="mask mask-star-2 bg-orange-400"
                   checked={selectedRating === value}
-                  onChange={handleRatingChange}
+                  onChange={() => handleRating(value)}
                 />
               ))}
             </div>
@@ -55,7 +58,7 @@ const ReviewModal = ({ closeModal, onSubmitReview, modalRef }) => {
             {errors.rating && <p className="text-red-500 text-sm mt-1">{errors.rating.message}</p>}
           </div>
           <div>
-            <label className="block font-medium mb-2">Feedback</label>
+            <label className="block font-medium text-gray-700 mb-2">Feedback</label>
             <textarea
               rows="4"
               maxLength={maxChars}
@@ -74,9 +77,9 @@ const ReviewModal = ({ closeModal, onSubmitReview, modalRef }) => {
             </p>
             {errors.feedback && <p className="text-red-500 text-sm mt-1">{errors.feedback.message}</p>}
           </div>
-          <div className="flex justify-end gap-3">
+          <div className="modal-action">
             <button type="button" onClick={closeModal} className="btn btn-ghost">Cancel</button>
-            <button type="submit" className="btn bg-blue-600 hover:bg-blue-700 text-white">Submit</button>
+            <button type="submit" className="btn bg-blue-600 hover:bg-blue-700 text-white">Submit Review</button>
           </div>
         </form>
       </div>
@@ -84,68 +87,149 @@ const ReviewModal = ({ closeModal, onSubmitReview, modalRef }) => {
   );
 };
 
+const PolicyDetailsModal = ({ policy, onClose }) => {
+  if (!policy) return null;
+
+  return (
+    <dialog open className="modal sm:modal-middle">
+      <div className="modal-box max-w-3xl w-full max-h-[90vh] p-0 overflow-hidden">
+        <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6 text-white">
+          <h3 className="font-bold text-xl">Policy Application Details</h3>
+          <button
+            className="btn btn-sm btn-circle absolute right-2 top-2 bg-white/10 border-none hover:bg-white/20"
+            onClick={onClose}
+          >
+            ✕
+          </button>
+        </div>
+
+        <div className="p-6 overflow-y-auto" style={{ maxHeight: 'calc(90vh - 150px)' }}>
+          <div className="grid grid-cols-1 gap-6">
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h4 className="font-semibold text-lg text-gray-800 mb-4 flex items-center">
+                <FaUser className="mr-2 text-blue-500" />
+                Applicant Information
+              </h4>
+              <div className="space-y-3">
+                <Details icon={<FaUser />} label="Name" value={policy.applicantName || 'N/A'} />
+                <Details icon={<MdEmail />} label="Email" value={policy.email || 'N/A'} />
+                <Details icon={<FaHome />} label="Address" value={policy.address || 'N/A'} />
+                <Details icon={<FaIdCard />} label="NID/SSN" value={policy.nidSsn || 'N/A'} />
+              </div>
+            </div>
+
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h4 className="font-semibold text-lg text-gray-800 mb-4 flex items-center">
+                <FaFileAlt className="mr-2 text-blue-500" />
+                Policy Information
+              </h4>
+              <div className="space-y-3">
+                <Details icon={<FaFileAlt />} label="Policy Name" value={policy.policyName || 'N/A'} />
+                <Details icon={<FaFileAlt />} label="Policy ID" value={policy.policyId || 'N/A'} />
+                <Details icon={<FaCalendarAlt />} label="Applied On" 
+                  value={new Date(policy.appliedAt).toLocaleString()} />
+                <Details icon={<MdAssignment />} label="Assigned Agent" 
+                  value={policy.assignedAgent || 'N/A'} />
+              </div>
+            </div>
+
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h4 className="font-semibold text-lg text-gray-800 mb-4 flex items-center">
+                <MdMedicalServices className="mr-2 text-blue-500" />
+                Health Information
+              </h4>
+              <div className="space-y-3">
+                <Details icon={<MdMedicalServices />} label="Consumes Alcohol" 
+                  value={policy.consumesAlcohol ? 'Yes' : 'No'} />
+                <Details icon={<MdMedicalServices />} label="Hospitalized Before" 
+                  value={policy.hasBeenHospitalized ? 'Yes' : 'No'} />
+                <Details icon={<MdMedicalServices />} label="Pre-existing Conditions" 
+                  value={policy.hasPreExistingConditions ? 'Yes' : 'No'} />
+              </div>
+            </div>
+
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h4 className="font-semibold text-lg text-gray-800 mb-4 flex items-center">
+                <FaUser className="mr-2 text-blue-500" />
+                Nominee Information
+              </h4>
+              <div className="space-y-3">
+                <Details icon={<FaUser />} label="Nominee Name" 
+                  value={policy.nomineeName || 'N/A'} />
+                <Details icon={<FaUser />} label="Nominee Relationship" 
+                  value={policy.nomineeRelationship || 'N/A'} />
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-6 bg-gray-50 p-4 rounded-lg">
+            <h4 className="font-semibold text-lg text-gray-800 mb-4">Application Status</h4>
+            <div className="flex items-center justify-between">
+              <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                policy.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                policy.status === 'approved' ? 'bg-green-100 text-green-800' :
+                policy.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                'bg-gray-100 text-gray-800'
+              }`}>
+                {policy.status}
+              </span>
+              {policy.paymentStatus?.toLowerCase() === 'paid' && (
+                <span className="px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                  Payment: Paid
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="modal-action sticky bottom-0 bg-white p-4 border-t border-gray-200 flex justify-end">
+          <button onClick={onClose} className="btn btn-ghost hover:bg-gray-100">Close</button>
+        </div>
+      </div>
+    </dialog>
+  );
+};
+
+const Details = ({ icon, label, value }) => (
+  <div className="flex items-start">
+    <div className="flex-shrink-0 h-5 w-5 text-gray-400 mr-2 mt-0.5">
+      {icon}
+    </div>
+    <div>
+      <p className="text-sm font-medium text-gray-500">{label}</p>
+      <p className="text-sm text-gray-900 mt-0.5">{value}</p>
+    </div>
+  </div>
+);
 
 const MyPolicies = () => {
-  const { user, loading: userLoading } = useContext(AuthContext);
+  const { user, loading: userLoading } = use(AuthContext);
   const axiosSecure = useAxiosSecure();
   const [applications, setApplications] = useState([]);
-  const [loadingApplications, setLoadingApplications] = useState(true);
-  const [error, setError] = useState(null);
-  const reviewModalRef = useRef(null);
+  const [loadingApp, setLoadingApp] = useState(true);
+  const [selectedPolicy, setSelectedPolicy] = useState(null);
   const [selectedPolicyForReview, setSelectedPolicyForReview] = useState(null);
+  const reviewModalRef = useRef(null);
 
   useEffect(() => {
     if (!user || userLoading) {
-      setLoadingApplications(false);
+      setLoadingApp(false);
       return;
     }
 
-    const fetchMyApplications = async () => {
+    const myApplicationsData = async () => {
       try {
         const res = await axiosSecure.get(`/applications/my-applications?email=${user.email}`);
         setApplications(res.data || []);
       } catch (err) {
-        console.error("Error fetching applications:", err);
-        setError("Unable to fetch your applications.");
-        toast.error("Failed to load your policies.");
+        console.log(err);
       } finally {
-        setLoadingApplications(false);
+        setLoadingApp(false);
       }
     };
 
-    fetchMyApplications();
+    myApplicationsData();
   }, [user, userLoading, axiosSecure]);
-
-  const handleViewDetails = (app) => {
-    Swal.fire({
-      title: `<span style="color: #1a202c;">Application Details</span>`,
-      html: `
-        <div style="text-align: left; font-size: 1.1em; color: #4a5568;">
-          <p><strong>Applicant Name:</strong> ${app.applicantName || 'N/A'}</p>
-          <p><strong>Email:</strong> ${app.email || 'N/A'}</p>
-          <p><strong>Policy Title:</strong> ${app.policyName || 'N/A'}</p>
-          <p><strong>Policy ID:</strong> ${app.policyId || 'N/A'}</p>
-          <p><strong>Applied Date:</strong> ${new Date(app.appliedAt).toLocaleDateString()}</p>
-          <p><strong>Status:</strong> <span style="font-weight: bold; color: ${app.status === 'pending' ? '#3182ce' : app.status === 'approved' ? '#38a169' : '#e53e3e'};">${app.status}</span></p>
-          ${app.paymentStatus?.toLowerCase() === 'paid' ? `<p><strong>Payment Status:</strong> <span style="font-weight: bold; color: #38a169;">Paid</span></p>` : ''}
-          ${app.transactionId ? `<p><strong>Transaction ID:</strong> ${app.transactionId}</p>` : ''}
-          <p><strong>Address:</strong> ${app.address || 'N/A'}</p>
-          <p><strong>NID/SSN:</strong> ${app.nidSsn || 'N/A'}</p>
-          <p><strong>Nominee Name:</strong> ${app.nomineeName || 'N/A'}</p>
-          <p><strong>Nominee Relation:</strong> ${app.nomineeRelationship || 'N/A'}</p>
-          <p><strong>Pre-Existing Conditions:</strong> ${app.hasPreExistingConditions ? 'Yes' : 'No'}</p>
-          <p><strong>Been Hospitalized:</strong> ${app.hasBeenHospitalized ? 'Yes' : 'No'}</p>
-          <p><strong>Consumes Alcohol:</strong> ${app.consumesAlcohol ? 'Yes' : 'No'}</p>
-          <p><strong>Assigned Agent:</strong> ${app.assignedAgent || 'N/A'}</p>
-        </div>
-      `,
-      icon: 'info',
-      confirmButtonText: 'Close',
-      width: 600,
-      padding: '2em',
-      background: '#fff',
-    });
-  };
 
   const handleGiveReview = (policy) => {
     setSelectedPolicyForReview(policy);
@@ -171,15 +255,21 @@ const MyPolicies = () => {
     try {
       const res = await axiosSecure.post('/reviews', reviewPayload);
       if (res.data.insertedId) {
-        toast.success('Review submitted successfully!');
+        Swal.fire({
+          title: 'Success!', 
+          text: 'Review submitted successfully!', 
+          icon: 'success'
+        });
         reviewModalRef.current.close();
         setSelectedPolicyForReview(null);
-      } else {
-        toast.error('Failed to submit review.');
       }
     } catch (err) {
-      console.error('Error submitting review:', err);
-      toast.error('Something went wrong while submitting your review.');
+      console.log(err);
+      Swal.fire({
+        title: 'Error!', 
+        text: 'Failed to submit review.', 
+        icon: 'error'
+      });
     }
   };
 
@@ -228,79 +318,112 @@ const MyPolicies = () => {
     doc.text(`Hospitalized Before: ${policy.hasBeenHospitalized ? 'Yes' : 'No'}`, 20, 276);
     doc.text(`Pre-existing Conditions: ${policy.hasPreExistingConditions ? 'Yes' : 'No'}`, 20, 284);
     doc.save(`Policy_${policy.policyName.replace(/\s/g, '_')}_${policy.applicantName.replace(/\s/g, '_')}.pdf`);
-    toast.success('Policy document downloaded!');
+    toast.success('Policy document downloaded!')
   };
 
-  if (userLoading || loadingApplications) return <Spinner />;
-
-  if (error) {
-    return (
-      <div className="text-center text-red-600 p-8 bg-white rounded-lg shadow-md max-w-md mx-auto mt-10">
-        <p className="text-lg mb-4">{error}</p>
-      </div>
-    );
-  }
+  if (userLoading || loadingApp) return <Spinner />;
 
   if (applications.length === 0) {
     return (
-      <div className="text-center text-gray-600 p-8 bg-white rounded-lg shadow-md max-w-lg mx-auto mt-10">
-        <p className="text-xl font-semibold mb-4">No policy applications found.</p>
-        <p>Click “Get Quote” on a policy to get started.</p>
+      <div className="md:p-6 bg-gray-50">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 md:p-6">
+          <div className="text-center py-12">
+            <div className="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+              <FaFileAlt className="text-3xl text-gray-400" />
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No policy applications found</h3>
+            <p className="text-gray-500">Click "Get Quote" on a policy to get started</p>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold text-center mb-6 text-gray-800">My Applied Policies</h1>
-      <div className="overflow-x-auto bg-white rounded-lg shadow-md p-4">
-        <table className="table w-full">
-          <thead>
-            <tr className="bg-gray-100 text-gray-600 text-sm">
-              <th>#</th>
-              <th>Policy Title</th>
-              <th>Applied On</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {applications.map((app, index) => (
-              <tr key={app._id} className="hover:bg-gray-50 text-sm">
-                <td>{index + 1}</td>
-                <td>{app.policyName || 'N/A'}</td>
-                <td>{new Date(app.appliedAt).toLocaleDateString()}</td>
-                <td>
-                  <span className={`px-2 py-1 rounded-full text-xs font-semibold
-                    ${app.status === 'pending' ? 'bg-yellow-100 text-yellow-600' :
-                      app.status === 'approved' ? 'bg-green-100 text-green-600' :
-                        app.status === 'rejected' ? 'bg-red-100 text-red-600' :
-                          'bg-gray-200 text-gray-600'}`}>
-                    {app.status}
-                  </span>
-                </td>
-                <td className="flex flex-wrap gap-2">
-                  <button onClick={() => handleViewDetails(app)} className="btn btn-xs btn-outline btn-info">
-                    View
-                  </button>
-                  {app.status === 'approved' && (
-                    <>
-                      <button onClick={() => handleGiveReview(app)} className="btn btn-xs btn-outline btn-success">
-                        Review
-                      </button>
-                      <button 
-                        onClick={() => handleDownloadPolicy(app)} 
-                        className="btn btn-xs btn-outline btn-primary"
-                      >
-                        Download Policy
-                      </button>
-                    </>
-                  )}
-                </td>
+    <div className="md:p-6 bg-gray-50">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 md:p-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-800">My Policy Applications</h2>
+            <p className="text-gray-600">View and manage all your applied policies</p>
+          </div>
+          <div className="text-sm text-gray-500">
+            Total Applications: <span className="font-semibold">{applications.length}</span>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto rounded-lg border border-gray-200">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Policy
+                </th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Applied On
+                </th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Status
+                </th>
+                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {applications.map((app) => (
+                <tr key={app._id} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm font-medium text-gray-900">{app.policyName || 'N/A'}</div>
+                    <div className="text-sm text-gray-500">ID: {app.policyId || 'N/A'}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">
+                      <FaCalendarAlt className="inline mr-1 text-gray-400" />
+                      {new Date(app.appliedAt).toLocaleDateString()}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                      app.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                      app.status === 'approved' ? 'bg-green-100 text-green-800' :
+                      app.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>
+                      {app.status}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <div className="flex justify-end space-x-2">
+                      <button
+                        onClick={() => setSelectedPolicy(app)}
+                        className="flex items-center gap-2 btn px-3 bg-blue-500 hover:bg-blue-600 text-white"
+                      >
+                        <FaEye /> <span>View</span>
+                      </button>
+                      {app.status === 'approved' && (
+                        <>
+                          <button
+                            onClick={() => handleGiveReview(app)}
+                            className="flex items-center gap-2 btn px-3 bg-green-500 hover:bg-green-600 text-white"
+                          >
+                            <FaStar /> <span>Review</span>
+                          </button>
+                          <button
+                            onClick={() => handleDownloadPolicy(app)}
+                            className="flex items-center gap-2 btn px-3 bg-purple-500 hover:bg-purple-600 text-white"
+                          >
+                            <FaFileDownload /> <span>Download</span>
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <ReviewModal
@@ -308,6 +431,13 @@ const MyPolicies = () => {
         closeModal={() => reviewModalRef.current.close()}
         onSubmitReview={onSubmitReview}
       />
+
+      {selectedPolicy && (
+        <PolicyDetailsModal 
+          policy={selectedPolicy} 
+          onClose={() => setSelectedPolicy(null)} 
+        />
+      )}
     </div>
   );
 };

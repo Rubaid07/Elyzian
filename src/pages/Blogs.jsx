@@ -4,7 +4,7 @@ import { Link } from 'react-router';
 import { FaCalendarAlt, FaEye, FaArrowRight } from 'react-icons/fa';
 import { format } from 'date-fns';
 import Spinner from '../component/Loader/Spinner';
-
+import { MdVerified } from "react-icons/md";
 const Blogs = () => {
   const [blogs, setBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -96,7 +96,7 @@ const Blogs = () => {
                 </h3>
                 
                 <p className="text-gray-600 mb-4 flex-grow line-clamp-3">
-                  {truncateContent(blog.content, 25)}
+                  {truncateContent(blog.summary, 25)}
                 </p>
 
                 <div className="flex items-center mb-4">
@@ -108,8 +108,9 @@ const Blogs = () => {
                     />
                   </div>
                   <div className="ml-3">
-                    <p className="text-sm font-medium text-gray-900">
+                    <p className="text-sm font-medium text-gray-900 flex items-center gap-1">
                       {blog.creatorName || 'Unknown Author'}
+                      <span className='text-blue-500'><MdVerified /></span>
                     </p>
                     <div className="flex items-center text-xs text-gray-500">
                       <FaCalendarAlt className="mr-1 text-sky-500" />

@@ -59,16 +59,12 @@ const Register = () => {
         return;
       }
     }
-
     createUser(email, password)
       .then(async result => {
         const user = result.user;
-
         await updateUser({ displayName: name, photoURL: imageUrl });
-
         await user.reload();
         const updatedFirebaseUser = auth.currentUser;
-
         const token = await user.getIdToken();
         localStorage.setItem('access-token', token);
 

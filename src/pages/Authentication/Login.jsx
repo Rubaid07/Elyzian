@@ -32,7 +32,7 @@ const Login = () => {
       })
   }
 
-  const togglePasswordShow = () => {
+  const togglePasswordShowHide = () => {
     setShowPassword(!showPassword);
   };
 
@@ -43,15 +43,12 @@ const Login = () => {
       user.getIdToken().then(token => {
         localStorage.setItem('access-token', token);
       });
-
-      // ✅ Backend এ ইউজার ইনফো সেভ করো (PUT ব্যবহার করলে idempotent হয়)
       axios.put(`${import.meta.env.VITE_API_URL}/users/${user.email}`, {
         name: user.displayName,
         email: user.email,
         photo: user.photoURL || 'https://i.ibb.co/5GzXkwq/user.png',
-        role: "customer" // default role
+        role: "customer"
       });
-
       toast.success("Logged in successfully");
       navigate(`${location.state ? location.state : "/"}`);
     })
@@ -103,7 +100,7 @@ const Login = () => {
               />
               <button
                 type="button"
-                onClick={togglePasswordShow}
+                onClick={togglePasswordShowHide}
                 className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >

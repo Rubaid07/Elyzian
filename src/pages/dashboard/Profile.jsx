@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
 import Swal from 'sweetalert2';
-import { FaEdit, FaEnvelope, FaPhoneAlt, FaUser, FaBuilding, FaWallet, FaFileContract, FaBlog, FaUsers } from 'react-icons/fa';
+import { FaEdit, FaPhoneAlt, FaUser, FaSignInAlt } from 'react-icons/fa';
 import useAxiosSecure from '../../hooks/useAxiosSecure';
 import { AuthContext } from '../../context/AuthContext';
 import Spinner from '../../component/Loader/Spinner';
@@ -13,38 +13,43 @@ const Profile = () => {
   const axiosSecure = useAxiosSecure();
   const [userInfo, setUserInfo] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [editMode, setEditMode] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({});
-  const [dashboardCards, setDashboardCards] = useState([]);
 
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [lastSignInTime, setLastSignInTime] = useState(null);
 
   useEffect(() => {
-    const fetchProfileAndDashboardData = async () => {
+    const profileData = async () => {
       if (!user?.email) {
         setLoading(false);
         return;
       }
       try {
-        const [profileRes, dashboardRes] = await Promise.all([
-          axiosSecure.get(`/users/${user.email}`),
-          axiosSecure.get(`/dashboard-overview?email=${user.email}`)
-        ]);
+        const profileRes = await axiosSecure.get(`/users/${user.email}`);
         setUserInfo(profileRes.data);
         setFormData(profileRes.data);
-        setDashboardCards(dashboardRes.data.cards || []);
         setImagePreview(profileRes.data.photo || 'https://i.ibb.co/5GzXkwq/user.png');
+
+        if (auth.currentUser && auth.currentUser.metadata.lastSignInTime) {
+          setLastSignInTime(auth.currentUser.metadata.lastSignInTime);
+        }
+
       } catch (err) {
-        console.error("Failed to fetch profile or dashboard data:", err);
-        Swal.fire('Error', 'Failed to load profile or dashboard data.', 'error');
+        console.error("Failed to fetch profile data:", err);
+        Swal.fire({
+          title: 'Error', 
+          text: 'Failed to load profile data.', 
+          icon: 'error'
+        });
       } finally {
         setLoading(false);
       }
     };
 
-    fetchProfileAndDashboardData();
+    profileData();
   }, [user, axiosSecure]);
 
   const handleInputChange = e => {
@@ -113,7 +118,7 @@ const Profile = () => {
 
       setUserInfo(prev => ({ ...prev, name: formData.name, photo }));
       
-      setEditMode(false);
+      setIsModalOpen(false);
       Swal.fire('Updated!', 'Profile information updated.', 'success');
     } catch (err) {
       console.error(err);
@@ -123,150 +128,176 @@ const Profile = () => {
     }
   };
 
-  if (loading || !userInfo) return <Spinner />;
-
-  const getCardIcon = (title) => {
-    switch (title) {
-      case 'Total Users':
-        return <FaUsers className="text-purple-600 text-3xl" />;
-      case 'Total Policies':
-        return <FaFileContract className="text-green-600 text-3xl" />;
-      case 'Total Transactions':
-        return <FaWallet className="text-blue-600 text-3xl" />;
-      case 'Assigned Customers':
-        return <FaUser className="text-yellow-600 text-3xl" />;
-      case 'Your Blogs':
-        return <FaBlog className="text-red-600 text-3xl" />;
-      case 'My Policies':
-        return <FaFileContract className="text-green-600 text-3xl" />;
-      case 'Claim Requests':
-        return <FaBuilding className="text-orange-600 text-3xl" />;
-      default:
-        return <FaUser className="text-gray-600 text-3xl" />;
-    }
+  const openModal = () => {
+    setIsModalOpen(true);
+    setImageFile(null);
+    setImagePreview(userInfo.photo || 'https://i.ibb.co/5GzXkwq/user.png');
   };
 
+  const closeModal = () => {
+    setIsModalOpen(false);
+  };
+
+  if (loading || !userInfo) return <Spinner />;
+
   return (
-    <div className="min-h-screen py-10 px-4 md:px-10">
-      <div className="max-w-4xl mx-auto bg-white p-8 rounded-2xl shadow-lg border border-gray-200">
-        <div className="flex flex-col md:flex-row md:items-start gap-6">
-          <img
-            src={userInfo.photo || 'https://i.ibb.co/5GzXkwq/user.png'}
-            alt="Profile"
-            className="w-32 h-32 rounded-full object-cover border-4 border-blue-300"
-          />
-          <div className="flex-1">
-            <h2 className="text-3xl font-semibold text-gray-800 flex items-center gap-2">
-              <FaUser className="text-blue-600" /> {userInfo.name}
-            </h2>
-            <p className="text-gray-600 flex items-center gap-2 mt-1">
-              <FaEnvelope className="text-blue-500" /> {userInfo.email}
-            </p>
-            {userInfo.phone && (
-              <p className="text-gray-600 flex items-center gap-2 mt-1">
-                <FaPhoneAlt className="text-green-500" /> {userInfo.phone}
-              </p>
-            )}
-            <p className="mt-2 px-3 py-1 bg-blue-100 text-blue-800 rounded-full inline-block text-sm capitalize">
-              Role: {userInfo.role}
-            </p>
+    <div className="min-h-screen py-6 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto">
+        <div className="bg-white rounded-2xl overflow-hidden shadow-lg">
+         
+          <div className=" p-6 sm:p-8 bg-sky-50 text-center">
+            <h1 className="text-2xl sm:text-3xl font-bold">My Profile</h1>
+            <p className="opacity-90 mt-2 text-sm sm:text-base">Manage your account information</p>
           </div>
-          <button
-            onClick={() => {
-              setEditMode(true);
-              setImageFile(null);
-              setImagePreview(userInfo.photo || 'https://i.ibb.co/5GzXkwq/user.png');
-            }}
-            className="btn w-max border-sky-700 bg-transparent text-sky-700 mt-4 md:mt-0 hover:bg-sky-700 hover:text-white"
-          >
-            <FaEdit className="mr-1" /> Edit Profile
-          </button>
-        </div>
-        {dashboardCards.length > 0 && (
-          <div className="mt-8 pt-6 border-t border-gray-200">
-            <h3 className="text-2xl font-semibold text-gray-800 mb-4">Your Overview</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {dashboardCards.map((card, index) => (
-                <div
-                  key={index}
-                  className="bg-white p-6 rounded-lg shadow-md flex items-center gap-4"
-                >
-                  <div className="flex-shrink-0">
-                    {getCardIcon(card.title)}
-                  </div>
-                  <div>
-                    <p className="text-gray-500 text-sm font-medium">{card.title}</p>
-                    <p className="text-3xl font-bold text-gray-900">{card.value}</p>
-                  </div>
+
+          <div className="p-6 sm:p-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="md:col-span-1 flex flex-col items-center">
+              <div className="mb-6">
+                <img
+                  src={userInfo.photo || 'https://i.ibb.co/5GzXkwq/user.png'}
+                  alt="Profile"
+                  className="w-32 h-32 sm:w-40 sm:h-40 rounded-full object-cover border-4 border-white shadow-lg"
+                />
+              </div>
+
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-800 text-center">
+                {userInfo.name}
+              </h2>
+              <div className="mt-2 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs sm:text-sm font-semibold capitalize">
+                {userInfo.role}
+              </div>
+
+              {lastSignInTime && (
+                <div className="mt-4 p-3 bg-gray-50 rounded-lg text-center w-full">
+                  <p className="text-gray-600 flex items-center gap-2 text-xs sm:text-sm justify-center">
+                    <FaSignInAlt className="text-purple-500" /> 
+                    <span>Last Login: {new Date(lastSignInTime).toLocaleString()}</span>
+                  </p>
                 </div>
-              ))}
+              )}
+
+              <button
+                onClick={openModal}
+                className="mt-6 flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-medium rounded-lg shadow transition-colors duration-300 text-sm sm:text-base cursor-pointer"
+              >
+                <FaEdit className="text-sm" /> Edit Profile
+              </button>
+            </div>
+
+            <div className="md:col-span-2 space-y-4">
+              <div className="bg-gray-50 p-4 sm:p-6 rounded-xl">
+                <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-3 sm:mb-4 flex items-center gap-2">
+                  <FaUser className="text-blue-500" /> Personal Information
+                </h3>
+                <div className="space-y-3 sm:space-y-4">
+                  <div className="flex flex-col sm:flex-row">
+                    <div className="w-full sm:w-1/3 text-gray-600 font-medium text-sm sm:text-base mb-1 sm:mb-0">Full Name</div>
+                    <div className="w-full sm:w-2/3 text-gray-800 text-sm sm:text-base">{userInfo.name}</div>
+                  </div>
+                  <div className="flex flex-col sm:flex-row">
+                    <div className="w-full sm:w-1/3 text-gray-600 font-medium text-sm sm:text-base mb-1 sm:mb-0">Email</div>
+                    <div className="w-full sm:w-2/3 text-gray-800 text-sm sm:text-base flex items-center gap-2">
+                     {userInfo.email}
+                    </div>
+                  </div>
+                  {userInfo.phone && (
+                    <div className="flex flex-col sm:flex-row">
+                      <div className="w-full sm:w-1/3 text-gray-600 font-medium text-sm sm:text-base mb-1 sm:mb-0">Phone</div>
+                      <div className="w-full sm:w-2/3 text-gray-800 text-sm sm:text-base flex items-center gap-2">
+                        <FaPhoneAlt className="text-green-500 text-sm" /> {userInfo.phone}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
-        )}
+        </div>
       </div>
 
-      {editMode && (
-        <dialog open className="modal modal-open">
-          <div className="modal-box max-w-xl">
-            <h3 className="font-bold text-lg mb-4">Edit Profile</h3>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="label">Name</label>
-                <input
-                  type="text"
-                  name="name"
-                  defaultValue={formData.name}
-                  onChange={handleInputChange}
-                  className="input input-bordered w-full"
-                  required
-                />
-              </div>
+      <div className={`modal ${isModalOpen ? 'modal-open' : ''}`}>
+        <div className="modal-box max-w-2xl">
+          <h3 className="font-bold text-2xl mb-6">Edit Profile</h3>
+          
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">Full Name</span>
+              </label>
+              <input
+                type="text"
+                name="name"
+                value={formData.name || ''}
+                onChange={handleInputChange}
+                className="input input-bordered w-full"
+                required
+              />
+            </div>
 
-              <div>
-                <label className="label">Email</label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  className="input input-bordered w-full bg-gray-100 text-gray-500 cursor-not-allowed"
-                  readOnly
-                  disabled
-                />
-              </div>
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">Email</span>
+              </label>
+              <input
+                type="email"
+                name="email"
+                value={formData.email || ''}
+                className="input input-bordered w-full bg-gray-100 cursor-not-allowed"
+                disabled
+                readOnly
+              />
+            </div>
 
-              <div>
-                <label className="label">Upload New Photo</label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="file-input file-input-bordered w-full"
-                  onChange={handleImageChange}
-                />
-                {imagePreview && (
-                  <img src={imagePreview} alt="Profile Preview" className="mt-2 w-32 h-32 rounded-full object-cover shadow border-2 border-gray-200" />
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">Profile Photo</span>
+              </label>
+              <div className="flex flex-col sm:flex-row items-center gap-4">
+                <div className="avatar">
+                  <div className="w-24 rounded-full">
+                    <img src={imagePreview} alt="Profile preview" />
+                  </div>
+                </div>
+                <label className="cursor-pointer">
+                  <div className="btn btn-outline">
+                    Change Photo
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleImageChange}
+                    />
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <div className="modal-action">
+              <button
+                type="button"
+                onClick={closeModal}
+                className="btn btn-ghost"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={uploadingImage}
+              >
+                {uploadingImage ? (
+                  <>
+                    <span className="loading loading-spinner"></span>
+                    Saving...
+                  </>
+                ) : (
+                  'Save Changes'
                 )}
-              </div>
-              <div className="modal-action flex justify-between items-center">
-                <button
-                  type="submit"
-                  className="btn bg-sky-700 text-white hover:bg-sky-800"
-                  disabled={uploadingImage}
-                >
-                  {uploadingImage ? (
-                    <>
-                      <span className="loading loading-spinner loading-sm"></span> Saving...
-                    </>
-                  ) : (
-                    'Save Changes'
-                  )}
-                </button>
-                <button onClick={() => setEditMode(false)} className="btn">Cancel</button>
-              </div>
-            </form>
-          </div>
-        </dialog>
-      )}
-
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
   );
 };

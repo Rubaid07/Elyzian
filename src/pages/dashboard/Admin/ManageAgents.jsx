@@ -13,7 +13,7 @@ const ManageAgents = () => {
   const [loading, setLoading] = useState(true);
   const [tabIndex, setTabIndex] = useState(0);
 
-  const fetchAgentData = () => {
+  const AgentData = () => {
     Promise.all([
       axiosSecure.get('/admin/agents'),
       axiosSecure.get('/admin/agent-applications')
@@ -27,7 +27,7 @@ const ManageAgents = () => {
   };
 
   useEffect(() => {
-    fetchAgentData();
+    AgentData();
   }, []);
 
   const handleApproveAgent = async (id, email) => {
@@ -55,7 +55,7 @@ const ManageAgents = () => {
           icon: 'success',
           confirmButtonColor: '#10b981'
         });
-        fetchAgentData();
+        AgentData();
       } catch (err) {
         Swal.fire({
           title: 'Error',
@@ -89,7 +89,7 @@ const ManageAgents = () => {
           icon: 'success',
           confirmButtonColor: '#10b981'
         });
-        fetchAgentData();
+        AgentData();
       } catch (err) {
         Swal.fire({
           title: 'Error',
@@ -116,7 +116,7 @@ const ManageAgents = () => {
       if (result.isConfirmed) {
         try {
           await axiosSecure.patch(`/users/${email}/role`, { role: 'customer' });
-          fetchAgentData();
+          AgentData();
           Swal.fire({
             title: 'Demoted!',
             text: 'User has been demoted to customer.',

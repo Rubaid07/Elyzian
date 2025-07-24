@@ -5,6 +5,7 @@ import useAxiosSecure from '../hooks/useAxiosSecure';
 import { format } from 'date-fns';
 import { FaCalendarAlt, FaUser, FaEye, FaArrowLeft } from 'react-icons/fa';
 import Spinner from '../component/Loader/Spinner';
+import { MdVerified } from 'react-icons/md';
 
 const BlogDetails = () => {
     const { id } = useParams();
@@ -104,9 +105,12 @@ const BlogDetails = () => {
                                     />
                                 </div>
                                 <div>
-                                    <p className="font-medium text-gray-900">
+                                    <div className='flex items-center gap-1'>
+                                        <p className="font-medium text-gray-900">
                                         {blog.creatorName || 'Unknown Author'}
                                     </p>
+                                    <p className='text-blue-500'><MdVerified /></p>
+                                    </div>
                                     <div className="flex items-center text-sm">
                                         <FaCalendarAlt className="mr-1 text-sky-500" />
                                         <span>

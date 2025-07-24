@@ -24,13 +24,12 @@ const AddBlog = () => {
       setPreview(null);
     }
   };
-  const handleSummaryChange = (e) => {
+  const handleSummary = (e) => {
     const text = e.target.value;
     if (text.length <= maxSummaryChars) {
       setValue('summary', text, { shouldValidate: true });
     }
   };
-
 
   const onSubmit = async (data) => {
     setLoading(true);
@@ -105,7 +104,7 @@ const AddBlog = () => {
               maxLength: { value: maxSummaryChars, message: `Summary cannot exceed ${maxSummaryChars} characters.` } 
             })}
             value={summaryValue}
-            onChange={handleSummaryChange}
+            onChange={handleSummary}
             rows="3"
             className="textarea textarea-bordered w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder={`Provide a brief summary for the blog card (max ${maxSummaryChars} characters)`}

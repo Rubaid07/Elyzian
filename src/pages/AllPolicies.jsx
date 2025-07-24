@@ -11,16 +11,22 @@ const AllPolicies = () => {
     const [error, setError] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [searchTerm, setSearchTerm] = useState('');
+    const [filterCategory, setFilterCategory] = useState('all');
     const [totalPages, setTotalPages] = useState(1);
     const policiesPerPage = 6;
     const search = useRef(null);
     const prevSearch = useRef('');
-
+    const categories = [
+        'Term Life', 'Endowment Plan', 'Education',
+        'Senior Plan', 'Accidental', 'Health',
+        'Investment', 'Retirement'
+    ];
     const policiesPromise = async () => {
         try {
             setLoading(true);
             setError(null);
-            const res = await axiosPublic.get(`/policies?page=${currentPage}&limit=${policiesPerPage}&search=${searchTerm}`);
+            const categoryQuery = filterCategory !== 'all' ? `&category=${filterCategory}` : '';
+            const res = await axiosPublic.get(`/policies?page=${currentPage}&limit=${policiesPerPage}&search=${searchTerm}${categoryQuery}`);
             setPolicies(res.data.policies || []);
             setTotalPages(res.data.totalPages || 1);
         } catch (err) {
@@ -32,8 +38,9 @@ const AllPolicies = () => {
     };
 
     const handleSearch = (e) => {
-        e.preventDefault(); 
-        setCurrentPage(1); 
+        e.preventDefault();
+        setCurrentPage(1);
+        setFilterCategory('all');
         policiesPromise();
     };
 
@@ -44,15 +51,20 @@ const AllPolicies = () => {
         }
     };
 
+    const handleCategoryChange = (e) => {
+        setFilterCategory(e.target.value);
+        setCurrentPage(1);
+    };
+
     useEffect(() => {
         policiesPromise();
-    }, [currentPage]);
+    }, [currentPage, filterCategory]);
 
     useEffect(() => {
         prevSearch.current = searchTerm;
     }, [searchTerm]);
 
-     const handlePageChange = (pageNumber) => {
+    const handlePageChange = (pageNumber) => {
         setCurrentPage(pageNumber);
     };
     const pageNumbers = [...Array(totalPages).keys()].map(num => num + 1);
@@ -87,37 +99,52 @@ const AllPolicies = () => {
                     </p>
                 </div>
                 
-                <form onSubmit={handleSearch} className="mb-8 max-w-md mx-auto">
-                    <div className="flex items-center gap-3">
-                        <input
-                            ref={search}
-                            type="text"
-                            placeholder="Search policies"
-                            className="input input-bordered w-full pl-5"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            onKeyDown={handleKeyDown}
-                        />
-                        <button 
-                            type="submit" 
-                            className="bg-transparent border-none cursor-pointer "
-                            aria-label="Search"
+                <div className='flex flex-col md:flex-row gap-4 mb-8 max-w-7xl mx-auto items-center'>
+                    <form onSubmit={handleSearch} className="md:w-auto flex-grow">
+                        <div className="flex items-center gap-3">
+                            <input
+                                ref={search}
+                                type="text"
+                                placeholder="Search policies"
+                                className="input input-bordered pl-5"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                onKeyDown={handleKeyDown}
+                            />
+                            <button 
+                                type="submit" 
+                                className="border-none cursor-pointer "
+                                aria-label="Search"
+                            >
+                                <div className='flex items-center gap-2 btn bg-sky-600 hover:bg-sky-700 text-white'>
+                                    <FaSearch />
+                                    Search
+                                </div>
+                            </button>
+                        </div>
+                    </form>
+
+                    <div className="w-full md:w-auto mt-4 md:mt-0">
+                        <select
+                            className="select select-bordered w-full"
+                            value={filterCategory}
+                            onChange={handleCategoryChange}
                         >
-                            <div className='flex items-center gap-2 btn bg-sky-600 hover:bg-sky-700 text-white'>
-                                <FaSearch />
-                            Search
-                            </div>
-                        </button>
+                            <option value="all">All Categories</option>
+                            {categories.map(category => (
+                                <option key={category} value={category}>{category}</option>
+                            ))}
+                        </select>
                     </div>
-                </form>
+                </div>
 
                 {policies.length === 0 ? (
                     <div className="bg-white rounded-xl shadow-md p-8 max-w-2xl mx-auto text-center">
                         <p className="text-gray-600 text-lg mb-4">
-                            {searchTerm ? 'No policies match your search' : 'No policies available at the moment'}
+                            {(searchTerm || filterCategory !== 'all') ? 'No policies match your criteria' : 'No policies available at the moment'}
                         </p>
                         <p className="text-gray-500">
-                            {searchTerm ? 'Try a different search term' : 'We\'re working on adding new policies. Please check back later!'}
+                            {(searchTerm || filterCategory !== 'all') ? 'Try different search terms or categories' : 'We\'re working on adding new policies. Please check back later!'}
                         </p>
                     </div>
                 ) : (

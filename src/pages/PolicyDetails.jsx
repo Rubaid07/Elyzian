@@ -14,7 +14,7 @@ const PolicyDetails = () => {
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        const fetchPolicyDetails = async () => {
+        const policyDetailsData = async () => {
             setLoading(true);
             setError(null);
             try {
@@ -29,7 +29,7 @@ const PolicyDetails = () => {
         };
 
         if (id) {
-            fetchPolicyDetails();
+            policyDetailsData();
         } else {
             setLoading(false);
             setError('No policy ID provided.');
@@ -46,8 +46,8 @@ const PolicyDetails = () => {
                         <h3 className="text-xl font-bold mb-2">Error Loading Policy</h3>
                         <p>{error}</p>
                     </div>
-                    <Link 
-                        to="/policies" 
+                    <Link
+                        to="/policies"
                         className="inline-flex items-center px-6 py-3 bg-sky-600 text-white rounded-lg font-medium hover:bg-sky-700 transition-all shadow-md hover:shadow-lg"
                     >
                         <FaArrowLeft className="mr-2" /> Back to All Policies
@@ -61,8 +61,8 @@ const PolicyDetails = () => {
         <div className="bg-gradient-to-b from-gray-50 to-white py-10 md:py-16 px-4">
             <div className="max-w-4xl mx-auto">
                 <div className="mb-8">
-                    <Link 
-                        to="/policies" 
+                    <Link
+                        to="/policies"
                         className="inline-flex items-center text-sky-600 hover:text-sky-800 font-medium transition-colors"
                     >
                         <FaArrowLeft className="mr-2" /> All Policies
@@ -141,19 +141,35 @@ const PolicyDetails = () => {
                             >
                                 Get Instant Quote
                             </Link>
-                            <button
-                                onClick={() => alert('Agent consultation feature coming soon!')}
-                                className="flex-1 text-center border-2 border-sky-600 text-sky-600 hover:bg-sky-600 hover:text-white font-medium py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center"
+                            <label
+                                htmlFor="agent-modal"
+                                className="flex-1 text-center border-2 border-sky-600 text-sky-600 hover:bg-sky-600 hover:text-white font-medium py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center cursor-pointer"
                             >
                                 <FaPhoneAlt className="mr-2" /> Talk to Agent
-                            </button>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <input type="checkbox" id="agent-modal" className="modal-toggle" />
+                <div className="modal" role="dialog">
+                    <div className="modal-box">
+                        <h3 className="font-bold text-2xl text-sky-700 mb-4">Talk to an Agent</h3>
+                        <p className="py-2 text-gray-700">
+                            Our professional agents are available to assist you. Please call us at:
+                        </p>
+                        <div className="text-lg font-semibold text-sky-600 mb-4">📞 +8801111111111</div>
+                        <div className="modal-action">
+                            <label htmlFor="agent-modal" className="btn btn-sm bg-sky-600 text-white hover:bg-sky-700">
+                                Close
+                            </label>
                         </div>
                     </div>
                 </div>
 
+
                 <div className="text-center mt-12">
-                    <Link 
-                        to="/policies" 
+                    <Link
+                        to="/policies"
                         className="inline-flex items-center px-6 py-3 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-all"
                     >
                         <FaArrowLeft className="mr-2" /> Back to All Policies

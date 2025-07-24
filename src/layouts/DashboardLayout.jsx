@@ -12,6 +12,7 @@ import toast from 'react-hot-toast';
 import useAxiosSecure from '../hooks/useAxiosSecure';
 import Spinner from '../component/Loader/Spinner';
 import { RxDashboard } from 'react-icons/rx';
+import ScrollToTop from '../component/ScrollToTop';
 
 const DashboardLayout = () => {
   const { user, logOut } = useContext(AuthContext);
@@ -95,9 +96,10 @@ const DashboardLayout = () => {
 
   return (
     <div className="drawer lg:drawer-open">
+      <ScrollToTop></ScrollToTop>
       <input id="dashboard-drawer" type="checkbox" className="drawer-toggle" />
       <div className="drawer-content flex flex-col bg-gray-50 min-h-screen">
-        <header className="lg:hidden flex items-center justify-between p-4 bg-white shadow-sm">
+        <header className="lg:hidden flex items-center justify-between p-4 bg-white shadow-sm sticky top-0 z-10">
           <label htmlFor="dashboard-drawer" className="btn btn-ghost btn-circle">
             <FaBars className="text-sky-700 text-xl" />
           </label>
@@ -105,7 +107,7 @@ const DashboardLayout = () => {
           <div className="w-8" />
         </header>
 
-        <header className="hidden lg:flex items-center justify-between p-4 bg-white shadow-sm border-b border-gray-200">
+        <header className="hidden lg:flex items-center justify-between p-4 bg-white shadow-sm border-b border-gray-200 sticky top-0 z-10">
           <div>
             <h1 className="text-xl font-semibold text-gray-800 capitalize">{pageTitle()}</h1>
             <div className="flex items-center text-sm text-gray-500">

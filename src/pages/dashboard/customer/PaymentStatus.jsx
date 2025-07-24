@@ -102,7 +102,7 @@ const PaymentStatus = () => {
                     className="btn btn-xs btn-primary bg-blue-600 hover:bg-blue-700 text-white"
                     disabled={transaction.paymentStatus === 'Paid'} 
                   >
-                    {transaction.paymentStatus === 'Paid' ? 'Paid' : 'Make Payment'}
+                    {transaction.paymentStatus === 'Paid' ? 'Paid' : 'Payment'}
                   </button>
                 </td>
               </tr>
