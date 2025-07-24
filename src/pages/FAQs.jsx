@@ -114,8 +114,8 @@ const FAQs = () => {
               <a href="tel:+8801234567890" className="inline-flex items-center justify-center px-6 py-3 bg-white text-sky-600 rounded-lg hover:bg-gray-100 transition-colors font-medium">
                 <FaPhoneAlt className="mr-2" /> +880 1234 567890
               </a>
-              <a href="mailto:support@example.com" className="inline-flex items-center justify-center px-6 py-3 bg-sky-700 text-white rounded-lg hover:bg-sky-800 transition-colors font-medium">
-                <FaEnvelope className="mr-2" /> elyzian@gmail.com
+              <a href="mailto:mohammadrubaid07@gmail.com" className="inline-flex items-center justify-center px-6 py-3 bg-sky-700 text-white rounded-lg hover:bg-sky-800 transition-colors font-medium">
+                <FaEnvelope className="mr-2" /> Send Message
               </a>
             </div>
           </div>
