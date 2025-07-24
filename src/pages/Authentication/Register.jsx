@@ -218,7 +218,7 @@ const Register = () => {
               className="h-4 w-4 text-sky-700 rounded focus:ring-sky-700"
             />
             <label htmlFor="terms" className="ml-2 block text-sm text-gray-700">
-              I agree to the <Link to="/terms" className="text-sky-700 hover:underline font-medium">Terms of Service</Link> and <Link to="/privacy" className="text-sky-700 hover:underline font-medium">Privacy Policy</Link>
+              I agree to the <Link to="/terms-of-service" className="text-sky-700 hover:underline font-medium">Terms of Service</Link> and <Link to="/privacy-policy" className="text-sky-700 hover:underline font-medium">Privacy Policy</Link>
             </label>
           </div>
 

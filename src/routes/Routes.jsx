@@ -37,6 +37,8 @@ import EditBlog from "../pages/dashboard/agent/EditBlog";
 import ManageClaims from "../pages/dashboard/Admin/ManageClaims";
 import BlogDetails from "../pages/BlogDetails";
 import Error from "../component/Error";
+import PrivacyPolicy from "../component/PrivacyPolicy";
+import TermsOfService from "../component/TermsOfService";
 
 
 export const router = createBrowserRouter([
@@ -69,7 +71,14 @@ export const router = createBrowserRouter([
         path: 'faqs',
         Component: FAQs
       },
-
+      {
+        path: 'privacy-policy',
+        Component: PrivacyPolicy
+      },
+      {
+        path: 'terms-of-service',
+        Component: TermsOfService
+      },
       {
         path: 'quote/:id',
         element: <PrivateRoute><QuotePage /></PrivateRoute>
