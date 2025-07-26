@@ -1,5 +1,6 @@
 import React from 'react';
-import { FaFacebookF, FaTwitter, FaInstagram, FaLinkedinIn } from 'react-icons/fa';
+import { FaFacebookF, FaGithub, FaLinkedinIn } from 'react-icons/fa';
+import { FaXTwitter } from "react-icons/fa6";
 import logo from '../assets/logo.png';
 import { Link } from 'react-router';
 
@@ -61,16 +62,16 @@ const Footer = () => {
                             Email: mohammadrubaid07@gmail.com
                         </p>
                         <div className="flex space-x-4">
-                            <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="text-gray-500 hover:text-sky-700 transition-colors duration-300">
+                            <a href="https://www.facebook.com/rubaid.rahman.589" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="text-gray-500 hover:text-sky-700 transition-colors duration-300">
                                 <FaFacebookF className="h-6 w-6" />
                             </a>
-                            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" aria-label="Twitter" className="text-gray-500 hover:text-sky-700 transition-colors duration-300">
-                                <FaTwitter className="h-6 w-6" />
+                            <a href="https://x.com/Rubaid077" target="_blank" rel="noopener noreferrer" aria-label="Twitter" className="text-gray-500 hover:text-sky-700 transition-colors duration-300">
+                                <FaXTwitter className="h-6 w-6" />
                             </a>
-                            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="text-gray-500 hover:text-sky-700 transition-colors duration-300">
-                                <FaInstagram className="h-6 w-6" />
+                            <a href="https://github.com/Rubaid07" target="_blank" rel="noopener noreferrer" aria-label="Github" className="text-gray-500 hover:text-sky-700 transition-colors duration-300">
+                                <FaGithub className="h-6 w-6" />
                             </a>
-                            <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="text-gray-500 hover:text-sky-700 transition-colors duration-300">
+                            <a href="https://www.linkedin.com/in/rubaid07" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="text-gray-500 hover:text-sky-700 transition-colors duration-300">
                                 <FaLinkedinIn className="h-6 w-6" />
                             </a>
                         </div>
