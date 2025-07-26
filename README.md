@@ -7,10 +7,6 @@ A modern web application for managing life insurance policies, agents, and custo
 ## Live Site URL
 [Live Link](https://elyzian07.web.app)
 
-## Admin Login Credentials
-- Email: admin@lifesure.com
-- Password: Admin@1234
-
 ## Key Features
 - 🛡️ Role-based authentication (Admin, Agent, Customer)
 - 📊 Dynamic policy management with quote calculator
