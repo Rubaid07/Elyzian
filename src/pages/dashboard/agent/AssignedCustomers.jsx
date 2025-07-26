@@ -67,7 +67,10 @@ const AssignedCustomers = () => {
                     app._id === appId ? { ...app, status: newStatus } : app
                 ));
             } else {
-                Swal.fire('Info', 'No changes were made to the application', 'info');
+                Swal.fire({
+                    title: 'Info', 
+                    text: 'No changes were made to the application', icon: 'info'
+                });
             }
         } catch (err) {
             console.log(err);
