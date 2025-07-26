@@ -158,7 +158,6 @@ const ManageApplications = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">{app.policyName}</div>
-                      <div className="text-sm text-gray-500">ID: {app.policyId}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">

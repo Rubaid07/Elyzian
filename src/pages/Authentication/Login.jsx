@@ -56,9 +56,6 @@ const Login = () => {
       toast.error(error.message);
     });
 };
-
-
-
   return (
     <div className="flex flex-col items-center justify-center px-4 py-12">
       <div className="mb-10 flex flex-col items-center">

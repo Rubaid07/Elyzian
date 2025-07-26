@@ -1,23 +1,25 @@
-import React, { useEffect, useState } from 'react';
+import React, { use, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { useNavigate, useParams } from 'react-router';
 import useAxiosSecure from '../hooks/useAxiosSecure';
 import Spinner from '../component/Loader/Spinner';
 import { AuthContext } from '../context/AuthContext';
-import { FaUser,  FaHome, FaIdCard, FaUserFriends, FaHeartbeat, FaPaperPlane } from 'react-icons/fa';
+import { FaUser, FaHome, FaIdCard, FaUserFriends, FaHeartbeat, FaPaperPlane } from 'react-icons/fa';
 
 const ApplicationFormPage = () => {
-    const { user } = React.useContext(AuthContext);
+    const { user } = use(AuthContext);
+    const [loading, setLoading] = useState(false);
     const { id } = useParams();
     const navigate = useNavigate();
     const axiosSecure = useAxiosSecure();
     const { register, handleSubmit, formState: { errors }, reset } = useForm();
     const [policy, setPolicy] = useState(null);
+
     const [loadingPolicy, setLoadingPolicy] = useState(true);
 
     useEffect(() => {
-        const fetchPolicyDetails = async () => {
+        const policyDetails = async () => {
             try {
                 setLoadingPolicy(true);
                 const res = await axiosSecure.get(`/policies/${id}`);
@@ -31,11 +33,12 @@ const ApplicationFormPage = () => {
             }
         };
         if (id) {
-            fetchPolicyDetails();
+            policyDetails();
         }
     }, [id, axiosSecure, navigate]);
 
     const onSubmit = async (data) => {
+        setLoading(true);
         if (!policy) {
             toast.error('Policy details not loaded. Please try again.');
             return;
@@ -43,8 +46,8 @@ const ApplicationFormPage = () => {
 
         try {
             const applicationData = {
-                policyId: id, 
-                policyName: policy.policyTitle, 
+                policyId: id,
+                policyName: policy.policyTitle,
                 policyNumber: policy.policyNumber || 'N/A',
                 applicantName: data.fullName,
                 email: data.email,
@@ -68,9 +71,10 @@ const ApplicationFormPage = () => {
             } else {
                 toast.error('Failed to submit application. Please try again.');
             }
+            setLoading(false);
         } catch (err) {
-            console.error('Error submitting application:', err);
             toast.error('An error occurred while submitting your application.');
+            setLoading(false);
         }
     };
 
@@ -82,7 +86,7 @@ const ApplicationFormPage = () => {
                 <div className="bg-white rounded-xl shadow-lg p-8 max-w-md text-center">
                     <h2 className="text-2xl font-bold text-gray-800 mb-4">Policy Not Found</h2>
                     <p className="text-gray-600 mb-6">The policy you're trying to apply for could not be loaded.</p>
-                    <button 
+                    <button
                         onClick={() => navigate('/')}
                         className="btn bg-sky-600 hover:bg-sky-700 text-white"
                     >
@@ -112,7 +116,7 @@ const ApplicationFormPage = () => {
                                 <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
                                     <FaUser className="text-sky-500 mr-2" /> Personal Information
                                 </h2>
-                                
+
                                 <div className="space-y-4">
                                     <div>
                                         <label className="block text-gray-700 font-medium mb-2">Full Name</label>
@@ -134,8 +138,8 @@ const ApplicationFormPage = () => {
                                             <input
                                                 type="email"
                                                 value={user?.email || ''}
-                                                {...register('email', { 
-                                                    required: 'Email is required', 
+                                                {...register('email', {
+                                                    required: 'Email is required',
                                                     pattern: {
                                                         value: /^\S+@\S+$/i,
                                                         message: 'Please enter a valid email'
@@ -179,7 +183,7 @@ const ApplicationFormPage = () => {
                                 <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
                                     <FaUserFriends className="text-sky-500 mr-2" /> Nominee Information
                                 </h2>
-                                
+
                                 <div className="space-y-4">
                                     <div>
                                         <label className="block text-gray-700 font-medium mb-2">Nominee Name</label>
@@ -208,54 +212,63 @@ const ApplicationFormPage = () => {
                                 <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
                                     <FaHeartbeat className="text-sky-500 mr-2" /> Health Disclosure
                                 </h2>
-                                
+
                                 <div className="space-y-3 max-w-md">
-    <div className="form-control">
-        <label className="label cursor-pointer flex items-start ">
-            <input
-                type="checkbox"
-                {...register('hasPreExistingConditions')}
-                className="checkbox checkbox-primary"
-            />
-            <span className="label-text break-words whitespace-normal">
-                Do you have any pre-existing medical conditions?
-            </span>
-        </label>
-    </div>
+                                    <div className="form-control">
+                                        <label className="label cursor-pointer flex items-start ">
+                                            <input
+                                                type="checkbox"
+                                                {...register('hasPreExistingConditions')}
+                                                className="checkbox checkbox-primary"
+                                            />
+                                            <span className="label-text break-words whitespace-normal">
+                                                Do you have any pre-existing medical conditions?
+                                            </span>
+                                        </label>
+                                    </div>
 
-    <div className="form-control">
-        <label className="label cursor-pointer flex items-start">
-            <input
-                type="checkbox"
-                {...register('hasBeenHospitalized')}
-                className="checkbox checkbox-primary"
-            />
-            <span className="label-text break-words whitespace-normal">
-                Have you been hospitalized in the last 5 years?
-            </span>
-        </label>
-    </div>
+                                    <div className="form-control">
+                                        <label className="label cursor-pointer flex items-start">
+                                            <input
+                                                type="checkbox"
+                                                {...register('hasBeenHospitalized')}
+                                                className="checkbox checkbox-primary"
+                                            />
+                                            <span className="label-text break-words whitespace-normal">
+                                                Have you been hospitalized in the last 5 years?
+                                            </span>
+                                        </label>
+                                    </div>
 
-    <div className="form-control">
-        <label className="label cursor-pointer flex items-start">
-            <input
-                type="checkbox"
-                {...register('consumesAlcohol')}
-                className="checkbox checkbox-primary"
-            />
-            <span className="label-text">
-                Do you consume alcohol regularly?
-            </span>
-        </label>
-    </div>
-</div>
+                                    <div className="form-control">
+                                        <label className="label cursor-pointer flex items-start">
+                                            <input
+                                                type="checkbox"
+                                                {...register('consumesAlcohol')}
+                                                className="checkbox checkbox-primary"
+                                            />
+                                            <span className="label-text">
+                                                Do you consume alcohol regularly?
+                                            </span>
+                                        </label>
+                                    </div>
+                                </div>
                             </div>
 
                             <button
                                 type="submit"
-                                className="w-full flex items-center justify-center py-3 px-6 bg-sky-600 hover:bg-sky-700 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-300 mt-6"
+                                className="w-full flex items-center justify-center py-3 px-6 bg-sky-600 hover:bg-sky-700 text-white font-medium rounded-lg shadow-md hover:shadow-lg transition-all duration-300 mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
+                                disabled={loading}
                             >
-                                <FaPaperPlane className="mr-2" /> Submit Application
+                                {loading ? (
+                                    <>
+                                        <span className="loading loading-spinner loading-sm mr-2"></span> Submitting...
+                                    </>
+                                ) : (
+                                    <>
+                                        <FaPaperPlane className="mr-2" /> Submit Application
+                                    </>
+                                )}
                             </button>
                         </form>
                     </div>
