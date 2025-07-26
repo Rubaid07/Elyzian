@@ -45,7 +45,7 @@ const BlogList = () => {
 
     return (
         <section className="bg-gradient-to-b from-gray-50 to-white py-20 px-4">
-            <div className="max-w-7xl mx-auto">
+            <div className="container mx-auto">
                 <div className="text-center mb-16">
                     <h2 className="text-4xl font-bold text-gray-900 mb-4">
                         Latest <span className="text-sky-600">Blog Articles</span>
@@ -55,7 +55,7 @@ const BlogList = () => {
                     </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                     {blogs.map(blog => (
                         <div 
                             key={blog._id} 
