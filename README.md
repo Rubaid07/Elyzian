@@ -1,12 +1,50 @@
-# React + Vite
+# ELYZIAN -- Life Insurance Management Platform
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern web application for managing life insurance policies, agents, and customer interactions built with MERN stack.
 
-Currently, two official plugins are available:
+![Project Screenshot](https://i.postimg.cc/dVZJ49p0/Screenshot-2025-07-26-180201.png)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Live Site URL
+[Live Link](https://elyzian07.web.app)
 
-## Expanding the ESLint configuration
+## Admin Login Credentials
+- Email: admin@lifesure.com
+- Password: Admin@1234
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Key Features
+- 🛡️ Role-based authentication (Admin, Agent, Customer)
+- 📊 Dynamic policy management with quote calculator
+- 💳 Secure payment processing with Stripe integration
+- 📝 Multi-step policy application process
+- 👥 Agent-customer assignment system
+- 📈 Admin dashboard with comprehensive analytics
+- ✨ Responsive design for all devices
+- 🔐 JWT token-based authentication
+- 📄 PDF policy document generation
+- 🔍 Advanced search and filtering for policies
+- 🌟 Customer review and rating system
+- 📰 Blog management system for agents
+- ❓ FAQ section with helpful voting
+
+## Technologies Used
+### Frontend
+- React.js v19
+- Tailwind CSS
+- Tanstack Query (React Query)
+- React Hook Form
+- React Router
+- Firebase Authentication
+- Stripe.js
+- SweetAlert2
+- React Hot Toast
+- jsPDF
+
+### Backend
+- Node.js
+- Express.js
+- MongoDB
+- JWT (JSON Web Tokens)
+- Cloudinary (for image storage)
+- Stripe API
+- Firebase Admin SDK
+- Multer (for file uploads)
