@@ -10,7 +10,7 @@ A modern web application for managing life insurance policies, agents, and custo
 [Server Site](https://github.com/Rubaid07/Elyzian-server)
 
 ## Admin Credentials
-Email: admin@12.com
+Email: admin@12.com <br>
 Password: Abcd12
 
 ## Key Features
