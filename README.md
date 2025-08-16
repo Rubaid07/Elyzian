@@ -9,6 +9,10 @@ A modern web application for managing life insurance policies, agents, and custo
 ## Server Site Repo
 [Server Site](https://github.com/Rubaid07/Elyzian-server)
 
+## Admin Credentials
+Email: admin@12.com <br>
+Password: Abcd12
+
 ## Key Features
 - 🛡️ Role-based authentication (Admin, Agent, Customer)
 - 📊 Dynamic policy management with quote calculator
