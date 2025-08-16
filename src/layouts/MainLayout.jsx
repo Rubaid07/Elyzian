@@ -17,7 +17,9 @@ const MainLayout = () => {
                     <LoadingLogo />
                 </div>
             ) : (
-                    <Outlet />
+                    <div className='min-h-[calc(100vh-418px)]'>
+                        <Outlet />
+                    </div>
             )}
             <Footer></Footer>
         </div>

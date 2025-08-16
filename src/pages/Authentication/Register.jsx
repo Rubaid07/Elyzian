@@ -140,7 +140,7 @@ const Register = () => {
 
         <form onSubmit={handleSignUp} className="space-y-4">
           <div className="mb-6 flex justify-center">
-            <label htmlFor="profileUpload" className="relative w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center cursor-pointer overflow-hidden border-2 border-blue-300">
+            <label htmlFor="profileUpload" className="relative w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center cursor-pointer border-2 border-blue-300">
               {imagePreview ? (
                 <img src={imagePreview} alt="Profile" className="w-full h-full object-cover" />
               ) : (
