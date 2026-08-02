@@ -12,7 +12,6 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   
-  // Input values control করার জন্য state
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -38,11 +37,10 @@ const Login = () => {
       });
   };
 
-  // বাটনে ক্লিক করলে ইনপুট ফিল্ড ফিল-আপ হবে
   const handleFillCredentials = (demoEmail, demoPassword) => {
     setEmail(demoEmail);
     setPassword(demoPassword);
-    setError(""); // আগের কোনো ভুল মেসেজ থাকলে তা ক্লিয়ার করবে
+    setError("");
   };
 
   const togglePasswordShowHide = () => {
