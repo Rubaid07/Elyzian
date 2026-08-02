@@ -1,5 +1,5 @@
 import { use, useState } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { Link, useNavigate, useLocation } from 'react-router';
 import { FiEye, FiEyeOff } from 'react-icons/fi';
 import logo from '../../assets/logo.png';
 import { AuthContext } from '../../context/AuthContext';
@@ -7,16 +7,21 @@ import toast from 'react-hot-toast';
 import axios from 'axios';
 
 const Login = () => {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
+  const location = useLocation();
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("")
-  const { signIn, signInWithGoogle } = use(AuthContext)
+  const [error, setError] = useState("");
+  
+  // Input values control করার জন্য state
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const { signIn, signInWithGoogle } = use(AuthContext);
 
   const handleSignIn = e => {
     e.preventDefault();
-    const form = e.target;
-    const email = form.email.value;
-    const password = form.password.value;
+    setError("");
+
     signIn(email, password)
       .then(result => {
         const user = result.user;
@@ -26,36 +31,45 @@ const Login = () => {
           navigate(`${location.state ? location.state : "/"}`);
         });
       })
-      .catch(error => {
-        const errorCode = error.code
-        setError(errorCode)
-      })
-  }
+      .catch(err => {
+        const errorCode = err.code;
+        setError(errorCode);
+        toast.error("Login failed. Check your credentials.");
+      });
+  };
+
+  // বাটনে ক্লিক করলে ইনপুট ফিল্ড ফিল-আপ হবে
+  const handleFillCredentials = (demoEmail, demoPassword) => {
+    setEmail(demoEmail);
+    setPassword(demoPassword);
+    setError(""); // আগের কোনো ভুল মেসেজ থাকলে তা ক্লিয়ার করবে
+  };
 
   const togglePasswordShowHide = () => {
     setShowPassword(!showPassword);
   };
 
   const handleGoogleSignIn = () => {
-  signInWithGoogle()
-    .then(result => {
-      const user = result.user;
-      user.getIdToken().then(token => {
-        localStorage.setItem('access-token', token);
+    signInWithGoogle()
+      .then(result => {
+        const user = result.user;
+        user.getIdToken().then(token => {
+          localStorage.setItem('access-token', token);
+        });
+        axios.put(`${import.meta.env.VITE_API_URL}/users/${user.email}`, {
+          name: user.displayName,
+          email: user.email,
+          photo: user.photoURL || 'https://i.ibb.co/5GzXkwq/user.png',
+          role: "customer"
+        });
+        toast.success("Logged in successfully");
+        navigate(`${location.state ? location.state : "/"}`);
+      })
+      .catch(err => {
+        toast.error(err.message);
       });
-      axios.put(`${import.meta.env.VITE_API_URL}/users/${user.email}`, {
-        name: user.displayName,
-        email: user.email,
-        photo: user.photoURL || 'https://i.ibb.co/5GzXkwq/user.png',
-        role: "customer"
-      });
-      toast.success("Logged in successfully");
-      navigate(`${location.state ? location.state : "/"}`);
-    })
-    .catch(error => {
-      toast.error(error.message);
-    });
-};
+  };
+
   return (
     <div className="flex flex-col items-center justify-center px-4 py-12">
       <div className="mb-10 flex flex-col items-center">
@@ -69,6 +83,38 @@ const Login = () => {
           <p className="text-gray-500 mt-2">Sign in to your account</p>
         </div>
 
+        {/* Demo Fast Fill Buttons */}
+        <div className="mb-6">
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 text-center">
+            Click to Auto-fill Demo Credentials
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={() => handleFillCredentials('admin@12.com', 'Abcd12')}
+              className="py-2 px-3 text-xs font-medium text-sky-800 bg-sky-50 hover:bg-sky-100 border border-sky-200 rounded-lg transition-colors cursor-pointer text-center"
+            >
+              Fill Admin Info
+            </button>
+            <button
+              type="button"
+              onClick={() => handleFillCredentials('agent@12.com', 'Abcd12')}
+              className="py-2 px-3 text-xs font-medium text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-colors cursor-pointer text-center"
+            >
+              Fill Agent Info
+            </button>
+          </div>
+        </div>
+
+        <div className="relative my-6">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-200"></div>
+          </div>
+          <div className="relative flex justify-center text-xs">
+            <span className="px-2 bg-white text-gray-400">Or enter manually</span>
+          </div>
+        </div>
+
         <form onSubmit={handleSignIn} className="space-y-6">
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
@@ -76,7 +122,10 @@ const Login = () => {
             </label>
             <input
               id="email"
+              name="email"
               type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-700 focus:border-transparent"
               placeholder="Enter your email"
@@ -91,6 +140,8 @@ const Login = () => {
               <input
                 name="password"
                 type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 required
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-700 focus:border-transparent"
                 placeholder="Enter your password"
@@ -105,11 +156,13 @@ const Login = () => {
               </button>
             </div>
           </div>
-          {error && <p className='text-red-400 text-xs'>{error}</p>}
+
+          {error && <p className='text-red-500 text-xs'>{error}</p>}
 
           <div className="flex items-center justify-between">
             <div className="flex items-center">
               <input
+                id="remember-me"
                 type="checkbox"
                 className="h-4 w-4 text-sky-700 rounded"
               />
@@ -131,6 +184,7 @@ const Login = () => {
           >
             Sign in
           </button>
+
           <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-gray-300"></div>
@@ -141,6 +195,7 @@ const Login = () => {
           </div>
 
           <button
+            type="button"
             onClick={handleGoogleSignIn}
             className="w-full flex items-center justify-center gap-2 py-2 px-4 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors cursor-pointer"
           >
